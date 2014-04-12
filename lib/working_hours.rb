@@ -1,5 +1,6 @@
 require "working_hours/version"
+require "working_hours/duration"
 
 module WorkingHours
-  # Your code goes here...
+  class UnknownDuration < StandardError; end
 end
