@@ -11,5 +11,18 @@ module WorkingHours
         @kind = kind
       end
 
+      def seconds
+        case @kind
+        when :days
+          @value * 24 * 3600
+        when :hours
+          @value * 3600
+        when :minutes
+          @value * 60
+        else
+          raise UnknowDuration
+        end
+      end
+
   end
 end

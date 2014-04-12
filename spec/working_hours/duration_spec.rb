@@ -29,4 +29,18 @@ describe WorkingHours::Duration do
       }.to raise_error WorkingHours::UnknownDuration
     end
   end
+
+  describe '#seconds' do
+    it 'returns the number of seconds in a day period' do
+      42.working.days.seconds.should == 42 * 24 * 3600
+    end
+
+    it 'returns the number of seconds in a hour period' do
+      42.working.hours.seconds.should == 42 * 3600
+    end
+
+    it 'returns the number of seconds in a minute period' do
+      42.working.minutes.seconds.should == 42 * 60
+    end
+  end
 end
