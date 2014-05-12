@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'active_support/all'
 
 describe WorkingHours::Duration do
 
@@ -59,6 +60,13 @@ describe WorkingHours::Duration do
       it 'can add any time to a business days duration' do
         time = Time.local(1991, 11, 15, 14, 00, 42)
         (1.working.days + time).should == Time.local(1991, 11, 18, 14, 00, 42) # Monday
+      end
+
+      it 'can add any ActiveSupport::TimeWithZone to a business days duration' do
+        time = Time.utc(1991, 11, 15, 14, 00, 42)
+        time_monday = Time.utc(1991, 11, 18, 14, 00, 42)
+        time_with_zone = ActiveSupport::TimeWithZone.new(time, ActiveSupport::TimeZone.new('Paris'))
+        (1.working.days + time_with_zone).should == ActiveSupport::TimeWithZone.new(time_monday, ActiveSupport::TimeZone.new('Paris'))
       end
 
       it 'skips non worked days' do

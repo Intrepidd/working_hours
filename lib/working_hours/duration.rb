@@ -47,7 +47,7 @@ module WorkingHours
           day_of_week = current_day.strftime('%a').downcase.to_sym
           days_to_add -= 1 unless !config.working_hours.key?(day_of_week) || config.holidays.include?(current_day.to_date)
         end
-        other.class.parse(current_day.to_s)
+        other.respond_to?(:time_zone) ? other.time_zone.parse(current_day.to_s) : other.class.parse(current_day.to_s)
       end
 
   end
