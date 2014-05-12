@@ -44,10 +44,14 @@ module WorkingHours
       current_day = DateTime.parse(other.to_s)
       while days_to_add > 0
         current_day += 1
-        day_of_week = current_day.strftime('%a').downcase.to_sym
-        days_to_add -= 1 unless !config.working_hours.key?(day_of_week) || config.holidays.include?(current_day.to_date)
+        days_to_add -= 1 unless skip_day?(current_day)
       end
       other.respond_to?(:time_zone) ? other.time_zone.parse(current_day.to_s) : other.class.parse(current_day.to_s)
+    end
+
+    def skip_day?(day)
+      day_of_week = day.strftime('%a').downcase.to_sym
+      !config.working_hours.key?(day_of_week) || config.holidays.include?(day.to_date)
     end
   end
 end
