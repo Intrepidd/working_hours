@@ -6,7 +6,6 @@ describe WorkingHours::Config do
     WorkingHours::Config.reset!
   end
 
-
   describe '#working_hours' do
 
     let(:config) { WorkingHours::Config.working_hours }
@@ -27,6 +26,12 @@ describe WorkingHours::Config do
       expect(config).to eq(time_sheet)
     end
 
+    it 'should support multiple timespan per day'
+    it 'should validate invalid entries'
+    it 'should warn on extraneous keys'
+    it 'should support midnight at start'
+    it 'should support midnight at end'
+
   end
 
   describe '#holidays' do
@@ -40,6 +45,14 @@ describe WorkingHours::Config do
       WorkingHours::Config.holidays = [Date.today]
       expect(config).to eq([Date.today])
     end
+  end
+
+  describe '#time_zone' do
+
+    it 'should accept a custom timezone (string)'
+    it 'should accept a custom timezone (TimeZone)'
+    it 'defaults to Time.zone'
+
   end
 
 end

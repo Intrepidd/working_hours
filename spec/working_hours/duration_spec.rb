@@ -87,6 +87,36 @@ describe WorkingHours::Duration do
         WorkingHours::Config.working_hours.delete(:tue)
         expect(7.working.days + time).to eq(Date.new(2014, 4, 21))
       end
+
+      it 'accepts time given from any time zone'
+      it 'works with Time + duration'
+      it 'works with Date + duration'
+      it 'works with DateTime + duration'
+      it 'works with TimeWithZone + duration'
+
+    end
+
+    context 'business hours' do
+
+      it 'accepts time given from any time zone'
+      it 'returns time in config time zone'
+      it 'works with Time + duration'
+      it 'works with DateTime + duration'
+      it 'works with TimeWithZone + duration'
+
     end
   end
+
+  describe 'substraction' do
+    pending
+  end
+
+  describe '#from_now' do
+    pending
+  end
+
+  describe '#ago' do
+    pending
+  end
+
 end
