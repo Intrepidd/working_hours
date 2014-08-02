@@ -16,22 +16,35 @@ describe WorkingHours::Config do
 
     it 'should have a key for each week day' do
       [:mon, :tue, :wed, :thu, :fri].each do |d|
-        expect(config[d]).to be_kind_of(Array)
+        expect(config[d]).to be_kind_of(Hash)
       end
     end
 
     it 'should be changeable' do
-      time_sheet = {:mon => ['08:00', '14:00']}
+      time_sheet = {:mon => {'08:00' => '14:00'}}
       WorkingHours::Config.working_hours = time_sheet
       expect(config).to eq(time_sheet)
     end
 
-    it 'should support multiple timespan per day'
-    it 'should validate invalid entries'
+    it 'should support multiple timespan per day' do
+      time_sheet = {:mon => {'08:00' => '12:00', '14:00' => '18:00'}}
+      WorkingHours::Config.working_hours = time_sheet
+      expect(config).to eq(time_sheet)
+    end
+
     it 'should warn on extraneous keys'
     it 'should support midnight at start'
     it 'should support midnight at end'
 
+    describe 'validation' do
+      it 'rejects invalid time format' do
+        time_sheet = {:mon => {'8:0' => '12:00'}}
+        expect {
+          WorkingHours::Config.working_hours = time_sheet
+        }.to raise_error
+      end
+
+    end
   end
 
   describe '#holidays' do

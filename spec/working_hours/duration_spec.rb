@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'active_support/all'
 
 describe WorkingHours::Duration do
 
