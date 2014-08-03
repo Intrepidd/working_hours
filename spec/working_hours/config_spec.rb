@@ -14,6 +14,22 @@ describe WorkingHours::Config do
       expect(config).to be_kind_of(Hash)
     end
 
+    it 'is thread safe' do
+      expect {
+        Thread.new {
+          WorkingHours::Config.working_hours = {}
+        }.join
+      }.not_to change { WorkingHours::Config.working_hours }
+    end
+
+    it 'is fiber safe' do
+      expect {
+        Fiber.new {
+          WorkingHours::Config.working_hours = {}
+        }.resume
+      }.not_to change { WorkingHours::Config.working_hours }
+    end
+
     it 'should have a key for each week day' do
       [:mon, :tue, :wed, :thu, :fri].each do |d|
         expect(config[d]).to be_kind_of(Hash)
@@ -31,9 +47,6 @@ describe WorkingHours::Config do
       WorkingHours::Config.working_hours = time_sheet
       expect(config).to eq(time_sheet)
     end
-
-    it 'should support midnight at start'
-    it 'should support midnight at end'
 
     describe 'validation' do
       it 'rejects invalid day' do
@@ -83,14 +96,52 @@ describe WorkingHours::Config do
       WorkingHours::Config.holidays = [Date.today]
       expect(config).to eq([Date.today])
     end
+
+    describe 'validation' do
+      it 'rejects other type than array' do
+        expect {
+          WorkingHours::Config.holidays = {}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for holidays: Hash - must be Array")
+      end
+
+      it 'rejects invalid day' do
+        expect {
+          WorkingHours::Config.holidays = [Date.today, 42]
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid holiday: 42 - must be Date")
+      end
+    end
   end
 
   describe '#time_zone' do
+    let (:config) { WorkingHours::Config.time_zone }
 
-    it 'should accept a custom timezone (string)'
-    it 'should accept a custom timezone (TimeZone)'
-    it 'defaults to Time.zone'
+    it 'defaults to local time zone' do
+      expect(config).to eq(Time.zone)
+    end
 
+    it 'should accept a String' do
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect(config).to eq(ActiveSupport::TimeZone['Tokyo'])
+    end
+
+    it 'should accept a TimeZone' do
+      WorkingHours::Config.time_zone = ActiveSupport::TimeZone['Tokyo']
+      expect(config).to eq(ActiveSupport::TimeZone['Tokyo'])
+    end
+
+    describe 'validation' do
+      it 'rejects invalid types' do
+        expect {
+          WorkingHours::Config.time_zone = 02
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time zone: 2 - must be String or ActiveSupport::TimeZone")
+      end
+
+      it 'rejects unknown time zone' do
+        expect {
+          WorkingHours::Config.time_zone = 'Bordeaux'
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Unknown time zone: Bordeaux")
+      end
+    end
   end
-
+  
 end

@@ -18,7 +18,17 @@ module WorkingHours
       end
 
       def holidays=(val)
+        validate_holidays! val
         config[:holidays] = val
+      end
+
+      def time_zone
+        config[:time_zone]
+      end
+
+      def time_zone=(val)
+        zone = validate_time_zone! val
+        config[:time_zone] = zone
       end
 
       def reset!
@@ -74,6 +84,31 @@ module WorkingHours
           last_time = finish
         end
       end
+    end
+
+    def self.validate_holidays! holidays
+      if not holidays.is_a? Array
+        raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must be Array"
+      end
+      holidays.each do |day|
+        if not day.is_a? Date
+          raise InvalidConfiguration.new "Invalid holiday: #{day} - must be Date"
+        end
+      end
+    end
+
+    def self.validate_time_zone! zone
+      if zone.is_a? String
+        res = ActiveSupport::TimeZone[zone]
+        if res.nil?
+          raise InvalidConfiguration.new "Unknown time zone: #{zone}"
+        end
+      elsif zone.is_a? ActiveSupport::TimeZone
+        res = zone
+      else
+        raise InvalidConfiguration.new "Invalid time zone: #{zone.inspect} - must be String or ActiveSupport::TimeZone"
+      end
+      res
     end
 
   end
