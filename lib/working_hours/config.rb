@@ -63,12 +63,17 @@ module WorkingHours
     end
 
     def self.validate_working_hours! week
+      if week.empty?
+        raise InvalidConfiguration.new "No working hours given"
+      end
       if (invalid_keys = (week.keys - [:mon, :tue, :wed, :thu, :fri, :sat, :sun])).any?
         raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be 3 letter symbols"
       end
       week.each do |day, hours|
         if not hours.is_a? Hash
           raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
+        elsif hours.empty?
+          raise InvalidConfiguration.new "No working hours given for day `#{day}`"
         end
         last_time = nil
         hours.each do |start, finish|

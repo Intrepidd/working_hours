@@ -13,18 +13,18 @@ module WorkingHours
       @kind = kind
     end
 
-    def seconds
-      case @kind
-      when :days
-        @value * 24 * 3600
-      when :hours
-        @value * 3600
-      when :minutes
-        @value * 60
-      else
-        raise UnknowDuration
-      end
-    end
+    # def seconds
+    #   case @kind
+    #   when :days
+    #     @value * 24 * 3600
+    #   when :hours
+    #     @value * 3600
+    #   when :minutes
+    #     @value * 60
+    #   else
+    #     raise UnknowDuration
+    #   end
+    # end
 
     def +(other)
       unless other.kind_of?(Time) || other.kind_of?(Date)
@@ -33,20 +33,32 @@ module WorkingHours
       send("add_#{@kind}", other)
     end
 
+    def from_now
+      self + Time.now
+    end
+
     private
 
     def config
       WorkingHours::Config
     end
 
-    def add_days(other)
+    def add_days origin
       days_to_add = @value
-      current_day = DateTime.parse(other.to_s)
+      time = origin.in_time_zone(config.time_zone)
       while days_to_add > 0
-        current_day += 1
-        days_to_add -= 1 unless skip_day?(current_day)
+        time += 1.day
+        days_to_add -= 1 unless skip_day?(time)
       end
-      other.respond_to?(:time_zone) ? other.time_zone.parse(current_day.to_s) : other.class.parse(current_day.to_s)
+      convert_to_original_format time, origin
+    end
+
+    def convert_to_original_format time, original
+      case original
+      when Date then time.to_date
+      when DateTime then time.to_datetime
+      else time
+      end
     end
 
     def skip_day?(day)

@@ -17,7 +17,7 @@ describe WorkingHours::Config do
     it 'is thread safe' do
       expect {
         Thread.new {
-          WorkingHours::Config.working_hours = {}
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
         }.join
       }.not_to change { WorkingHours::Config.working_hours }
     end
@@ -25,7 +25,7 @@ describe WorkingHours::Config do
     it 'is fiber safe' do
       expect {
         Fiber.new {
-          WorkingHours::Config.working_hours = {}
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
         }.resume
       }.not_to change { WorkingHours::Config.working_hours }
     end
@@ -49,6 +49,12 @@ describe WorkingHours::Config do
     end
 
     describe 'validation' do
+      it 'rejects empty hash' do
+        expect {
+          WorkingHours::Config.working_hours = {}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "No working hours given")
+      end
+
       it 'rejects invalid day' do
         expect {
           WorkingHours::Config.working_hours = {:mon => 1, 'tuesday' => 2, 'wed' => 3}
@@ -59,6 +65,12 @@ describe WorkingHours::Config do
         expect {
           WorkingHours::Config.working_hours = {:mon => []}
         }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for `mon`: Array - must be Hash")
+      end
+
+      it 'rejects empty range' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "No working hours given for day `mon`")
       end
 
       it 'rejects invalid time format' do

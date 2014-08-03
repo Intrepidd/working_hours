@@ -13,12 +13,18 @@ describe WorkingHours::DurationProxy do
     let(:proxy) { WorkingHours::DurationProxy.new(42) }
 
     WorkingHours::Duration::SUPPORTED_KINDS.each do |kind|
-      describe "##{kind}" do
-        it 'should return a duration object' do
-          duration = proxy.send(kind)
-          expect(duration.value).to eq(42)
-          expect(duration.kind).to eq(kind)
-        end
+      singular = kind[0..-2]
+
+      it "##{kind} returns a duration object" do
+        duration = proxy.send(kind)
+        expect(duration.value).to eq(42)
+        expect(duration.kind).to eq(kind)
+      end
+
+      it "##{singular} returns a duration object" do
+        duration = proxy.send(singular)
+        expect(duration.value).to eq(42)
+        expect(duration.kind).to eq(kind)
       end
     end
   end

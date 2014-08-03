@@ -11,6 +11,11 @@ module WorkingHours
       define_method kind do
         Duration.new(@value, kind)
       end
+
+      # Singular version
+      define_method kind[0..-2] do
+        Duration.new(@value, kind)
+      end
     end
   end
 end

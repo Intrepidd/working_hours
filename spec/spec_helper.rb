@@ -6,6 +6,7 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require 'working_hours'
+require 'timecop'
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true

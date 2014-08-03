@@ -35,19 +35,19 @@ describe WorkingHours::Duration do
     end
   end
 
-  describe '#seconds' do
-    it 'returns the number of seconds in a day period' do
-      expect(42.working.days.seconds).to eq(42 * 24 * 3600)
-    end
+  # describe '#seconds' do
+  #   it 'returns the number of seconds in a day period' do
+  #     expect(42.working.days.seconds).to eq(42 * 24 * 3600)
+  #   end
 
-    it 'returns the number of seconds in a hour period' do
-      expect(42.working.hours.seconds).to eq(42 * 3600)
-    end
+  #   it 'returns the number of seconds in a hour period' do
+  #     expect(42.working.hours.seconds).to eq(42 * 3600)
+  #   end
 
-    it 'returns the number of seconds in a minute period' do
-      expect(42.working.minutes.seconds).to eq(42 * 60)
-    end
-  end
+  #   it 'returns the number of seconds in a minute period' do
+  #     expect(42.working.minutes.seconds).to eq(42 * 60)
+  #   end
+  # end
 
   describe 'addition' do
     context 'business days' do
@@ -64,8 +64,8 @@ describe WorkingHours::Duration do
       it 'can add any ActiveSupport::TimeWithZone to a business days duration' do
         time = Time.utc(1991, 11, 15, 14, 00, 42)
         time_monday = Time.utc(1991, 11, 18, 14, 00, 42)
-        time_with_zone = ActiveSupport::TimeWithZone.new(time, ActiveSupport::TimeZone.new('Paris'))
-        expect(1.working.days + time_with_zone).to eq(ActiveSupport::TimeWithZone.new(time_monday, ActiveSupport::TimeZone.new('Paris')))
+        time_with_zone = ActiveSupport::TimeWithZone.new(time, 'Tokyo')
+        expect(1.working.days + time_with_zone).to eq(ActiveSupport::TimeWithZone.new(time_monday, 'Tokyo'))
       end
 
       it 'skips non worked days' do
@@ -76,7 +76,7 @@ describe WorkingHours::Duration do
 
       it 'skips holidays' do
         time = Date.new(2014, 4, 7) # Monday
-        WorkingHours::Config.holidays << Date.new(2014, 4, 8)
+        WorkingHours::Config.holidays << Date.new(2014, 4, 8) # Tuesday
         expect(1.working.days + time).to eq(Date.new(2014, 4, 9)) # Wednesday
       end
 
@@ -87,7 +87,13 @@ describe WorkingHours::Duration do
         expect(7.working.days + time).to eq(Date.new(2014, 4, 21))
       end
 
-      it 'accepts time given from any time zone'
+      it 'accepts time given from any time zone' do
+        time = Time.utc(1991, 11, 14, 21, 0, 0) # Thursday 21 pm UTC
+        WorkingHours::Config.time_zone = 'Tokyo' # But we are at tokyo, so it's already Friday 6 am
+        monday = Time.new(1991, 11, 18, 6, 0, 0, "+09:00") # so one business day later, we are monday (Tokyo)
+        expect(1.working.days + time).to eq(monday)
+      end
+
       it 'works with Time + duration'
       it 'works with Date + duration'
       it 'works with DateTime + duration'
@@ -111,7 +117,10 @@ describe WorkingHours::Duration do
   end
 
   describe '#from_now' do
-    pending
+    it "performs addition with Time.now" do
+      Timecop.freeze(Time.utc(1991, 11, 15, 21)) # we are Friday 21 pm UTC
+      expect(1.working.day.from_now).to eq(Time.utc(1991, 11, 18, 21))
+    end
   end
 
   describe '#ago' do
