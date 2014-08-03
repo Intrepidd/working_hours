@@ -32,18 +32,43 @@ describe WorkingHours::Config do
       expect(config).to eq(time_sheet)
     end
 
-    it 'should warn on extraneous keys'
     it 'should support midnight at start'
     it 'should support midnight at end'
 
     describe 'validation' do
-      it 'rejects invalid time format' do
-        time_sheet = {:mon => {'8:0' => '12:00'}}
+      it 'rejects invalid day' do
         expect {
-          WorkingHours::Config.working_hours = time_sheet
-        }.to raise_error
+          WorkingHours::Config.working_hours = {:mon => 1, 'tuesday' => 2, 'wed' => 3}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid day identifier(s): tuesday, wed - must be 3 letter symbols")
       end
 
+      it 'rejects other type than hash' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => []}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for `mon`: Array - must be Hash")
+      end
+
+      it 'rejects invalid time format' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {'8:0' => '12:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 8:0 - must be 'HH:MM'")
+
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '24:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 24:00 - must be 'HH:MM'")
+      end
+
+      it 'rejects invalid range' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {'12:30' => '12:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid range: 12:30 => 12:00 - ends before it starts")
+      end
+
+      it 'rejects overlapping range' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '13:00', '12:00' => '18:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid range: 12:00 => 18:00 - overlaps previous range")
+      end
     end
   end
 
