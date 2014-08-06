@@ -6,7 +6,7 @@ describe WorkingHours::Config do
     WorkingHours::Config.reset!
   end
 
-  describe '#working_hours' do
+  describe '.working_hours' do
 
     let(:config) { WorkingHours::Config.working_hours }
 
@@ -48,7 +48,7 @@ describe WorkingHours::Config do
       expect(config).to eq(time_sheet)
     end
 
-    describe 'validation' do
+    describe 'validations' do
       it 'rejects empty hash' do
         expect {
           WorkingHours::Config.working_hours = {}
@@ -97,7 +97,7 @@ describe WorkingHours::Config do
     end
   end
 
-  describe '#holidays' do
+  describe '.holidays' do
     let (:config) { WorkingHours::Config.holidays }
 
     it 'has a default config' do
@@ -124,11 +124,11 @@ describe WorkingHours::Config do
     end
   end
 
-  describe '#time_zone' do
+  describe '.time_zone' do
     let (:config) { WorkingHours::Config.time_zone }
 
-    it 'defaults to local time zone' do
-      expect(config).to eq(Time.zone)
+    it 'defaults to UTC' do
+      expect(config).to eq(ActiveSupport::TimeZone['UTC'])
     end
 
     it 'should accept a String' do
@@ -155,5 +155,58 @@ describe WorkingHours::Config do
       end
     end
   end
-  
+
+  describe '.precompiled' do
+    subject { WorkingHours::Config.precompiled }
+
+    it 'computes an optimized version' do
+      expect(subject).to eq({
+          :working_hours => [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}],
+          :holidays => [],
+          :time_zone => ActiveSupport::TimeZone['UTC']
+        })
+    end
+
+    it 'changes if working_hours changes' do
+      expect {
+        WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
+      }.to change {
+        WorkingHours::Config.precompiled[:working_hours]
+      }.from(
+        [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}]
+      ).to(
+        [nil, {28800=>50400}]
+      )
+    end
+
+    it 'changes if time_zone changes' do
+      expect {
+        WorkingHours::Config.time_zone = 'Tokyo'
+      }.to change {
+        WorkingHours::Config.precompiled[:time_zone]
+      }.from(ActiveSupport::TimeZone['UTC']).to(ActiveSupport::TimeZone['Tokyo'])
+    end
+
+    it 'changes if holidays changes' do
+      expect {
+        WorkingHours::Config.holidays = [Date.new(2014, 8, 1), Date.new(2014, 7, 1)]
+      }.to change {
+        WorkingHours::Config.precompiled[:holidays]
+      }.from([]).to([Date.new(2014, 7, 1), Date.new(2014, 8, 1)])
+    end
+
+    it 'changes if config is reset' do
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect {
+        WorkingHours::Config.reset!
+      }.to change {
+        WorkingHours::Config.precompiled[:time_zone]
+      }.from(ActiveSupport::TimeZone['Tokyo']).to(ActiveSupport::TimeZone['UTC'])
+    end
+
+    it 'is computed only once' do
+      expect(WorkingHours::Config).to receive(:compile_time).exactly(10).times
+      3.times { WorkingHours::Config.precompiled }
+    end
+  end
 end

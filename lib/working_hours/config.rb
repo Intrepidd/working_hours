@@ -1,6 +1,7 @@
 module WorkingHours
   class Config
     TIME_FORMAT = /\A([0-1][0-9]|2[0-3]):([0-5][0-9])\z/
+    DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
 
     class << self
 
@@ -11,6 +12,7 @@ module WorkingHours
       def working_hours=(val)
         validate_working_hours! val
         config[:working_hours] = val
+        config.delete :precompiled
       end
 
       def holidays
@@ -20,6 +22,23 @@ module WorkingHours
       def holidays=(val)
         validate_holidays! val
         config[:holidays] = val
+        config.delete :precompiled
+      end
+
+      # Returns an optimized for computing version
+      def precompiled
+        config[:precompiled] ||= begin
+          compiled = {:working_hours => []}
+          working_hours.each do |day, hours|
+            compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}
+            hours.each do |start, finish|
+              compiled[:working_hours][DAYS_OF_WEEK.index(day)][compile_time(start)] = compile_time(finish)
+            end
+          end
+          compiled[:holidays] = holidays.sort
+          compiled[:time_zone] = time_zone
+          compiled
+        end
       end
 
       def time_zone
@@ -29,6 +48,7 @@ module WorkingHours
       def time_zone=(val)
         zone = validate_time_zone! val
         config[:time_zone] = zone
+        config.delete :precompiled
       end
 
       def reset!
@@ -51,7 +71,7 @@ module WorkingHours
             :fri => {'09:00' => '17:00'}
           },
           :holidays => [],
-          :time_zone => Time.zone
+          :time_zone => ActiveSupport::TimeZone['UTC']
         }
       end
 
@@ -62,11 +82,17 @@ module WorkingHours
     def initialize
     end
 
+    def self.compile_time time
+      hour = time[TIME_FORMAT,1].to_i
+      min = time[TIME_FORMAT,2].to_i
+      hour * 3600 + min * 60
+    end
+
     def self.validate_working_hours! week
       if week.empty?
         raise InvalidConfiguration.new "No working hours given"
       end
-      if (invalid_keys = (week.keys - [:mon, :tue, :wed, :thu, :fri, :sat, :sun])).any?
+      if (invalid_keys = (week.keys - DAYS_OF_WEEK)).any?
         raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be 3 letter symbols"
       end
       week.each do |day, hours|
