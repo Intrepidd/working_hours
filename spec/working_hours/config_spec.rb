@@ -2,10 +2,6 @@ require 'spec_helper'
 
 describe WorkingHours::Config do
 
-  before :each do
-    WorkingHours::Config.reset!
-  end
-
   describe '.working_hours' do
 
     let(:config) { WorkingHours::Config.working_hours }
@@ -47,6 +43,8 @@ describe WorkingHours::Config do
       WorkingHours::Config.working_hours = time_sheet
       expect(config).to eq(time_sheet)
     end
+
+    it "can't be modified once precompiled"
 
     describe 'validations' do
       it 'rejects empty hash' do
@@ -109,6 +107,8 @@ describe WorkingHours::Config do
       expect(config).to eq([Date.today])
     end
 
+    it "can't be modified once precompiled"
+
     describe 'validation' do
       it 'rejects other type than array' do
         expect {
@@ -140,6 +140,8 @@ describe WorkingHours::Config do
       WorkingHours::Config.time_zone = ActiveSupport::TimeZone['Tokyo']
       expect(config).to eq(ActiveSupport::TimeZone['Tokyo'])
     end
+
+    it "can't be modified once precompiled"
 
     describe 'validation' do
       it 'rejects invalid types' do

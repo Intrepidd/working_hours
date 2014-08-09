@@ -6,7 +6,7 @@ module WorkingHours
     class << self
 
       def working_hours
-        config[:working_hours]
+        config[:working_hours].freeze
       end
 
       def working_hours=(val)
@@ -16,7 +16,7 @@ module WorkingHours
       end
 
       def holidays
-        config[:holidays]
+        config[:holidays].freeze
       end
 
       def holidays=(val)
@@ -28,7 +28,7 @@ module WorkingHours
       # Returns an optimized for computing version
       def precompiled
         config[:precompiled] ||= begin
-          compiled = {:working_hours => []}
+          compiled = {working_hours: []}
           working_hours.each do |day, hours|
             compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}
             hours.each do |start, finish|
@@ -42,7 +42,7 @@ module WorkingHours
       end
 
       def time_zone
-        config[:time_zone]
+        config[:time_zone].freeze
       end
 
       def time_zone=(val)
@@ -63,15 +63,15 @@ module WorkingHours
 
       def default_config
         {
-          :working_hours => {
-            :mon => {'09:00' => '17:00'},
-            :tue => {'09:00' => '17:00'},
-            :wed => {'09:00' => '17:00'},
-            :thu => {'09:00' => '17:00'},
-            :fri => {'09:00' => '17:00'}
+          working_hours: {
+            mon: {'09:00' => '17:00'},
+            tue: {'09:00' => '17:00'},
+            wed: {'09:00' => '17:00'},
+            thu: {'09:00' => '17:00'},
+            fri: {'09:00' => '17:00'}
           },
-          :holidays => [],
-          :time_zone => ActiveSupport::TimeZone['UTC']
+          holidays: [],
+          time_zone: ActiveSupport::TimeZone['UTC']
         }
       end
 

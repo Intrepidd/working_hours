@@ -2,10 +2,6 @@ require 'spec_helper'
 
 describe WorkingHours::Duration do
 
-  before :each do
-    WorkingHours::Config.reset!
-  end
-
   describe '#initialize' do
     it 'is initialized with a number and a type' do
       duration = WorkingHours::Duration.new(5, :days)
@@ -50,18 +46,18 @@ describe WorkingHours::Duration do
   # end
 
   describe 'addition' do
-    context 'business days' do
-      it 'can add any date to a business days duration' do
+    context 'working days' do
+      it 'can add any date to a working days duration' do
         date = Date.new(1991, 11, 15) #Friday
         expect(2.working.days + date).to eq(Date.new(1991, 11, 19)) # Tuesday
       end
 
-      it 'can add any time to a business days duration' do
+      it 'can add any time to a working days duration' do
         time = Time.local(1991, 11, 15, 14, 00, 42)
         expect(1.working.days + time).to eq(Time.local(1991, 11, 18, 14, 00, 42)) # Monday
       end
 
-      it 'can add any ActiveSupport::TimeWithZone to a business days duration' do
+      it 'can add any ActiveSupport::TimeWithZone to a working days duration' do
         time = Time.utc(1991, 11, 15, 14, 00, 42)
         time_monday = Time.utc(1991, 11, 18, 14, 00, 42)
         time_with_zone = ActiveSupport::TimeWithZone.new(time, 'Tokyo')
@@ -70,27 +66,27 @@ describe WorkingHours::Duration do
 
       it 'skips non worked days' do
         time = Date.new(2014, 4, 7) # Monday
-        WorkingHours::Config.working_hours.delete(:tue)
+        WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}}
         expect(1.working.days + time).to eq(Date.new(2014, 4, 9)) # Wednesday
       end
 
       it 'skips holidays' do
         time = Date.new(2014, 4, 7) # Monday
-        WorkingHours::Config.holidays << Date.new(2014, 4, 8) # Tuesday
+        WorkingHours::Config.holidays = [Date.new(2014, 4, 8)] # Tuesday
         expect(1.working.days + time).to eq(Date.new(2014, 4, 9)) # Wednesday
       end
 
       it 'skips holidays and non worked days' do
         time = Date.new(2014, 4, 7) # Monday
-        WorkingHours::Config.holidays << Date.new(2014, 4, 9)
-        WorkingHours::Config.working_hours.delete(:tue)
-        expect(7.working.days + time).to eq(Date.new(2014, 4, 21))
+        WorkingHours::Config.holidays = [Date.new(2014, 4, 9)] # Wednesday
+        WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}}
+        expect(3.working.days + time).to eq(Date.new(2014, 4, 21))
       end
 
       it 'accepts time given from any time zone' do
         time = Time.utc(1991, 11, 14, 21, 0, 0) # Thursday 21 pm UTC
         WorkingHours::Config.time_zone = 'Tokyo' # But we are at tokyo, so it's already Friday 6 am
-        monday = Time.new(1991, 11, 18, 6, 0, 0, "+09:00") # so one business day later, we are monday (Tokyo)
+        monday = Time.new(1991, 11, 18, 6, 0, 0, "+09:00") # so one working day later, we are monday (Tokyo)
         expect(1.working.days + time).to eq(monday)
       end
 
@@ -101,7 +97,12 @@ describe WorkingHours::Duration do
 
     end
 
-    context 'business hours' do
+    context 'working time' do
+
+      it 'can add any time to a working hours duration' do
+        time = Time.utc(1991, 11, 15, 14, 00, 42) # Friday
+        expect(2.working.hours + time).to eq(Time.utc(1991, 11, 15, 16, 00, 42))
+      end
 
       it 'accepts time given from any time zone'
       it 'returns time in config time zone'

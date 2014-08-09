@@ -1,3 +1,5 @@
+require "working_hours/duration_proxy"
+
 module WorkingHours
   module CoreExt
     module Fixnum

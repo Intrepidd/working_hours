@@ -1,3 +1,5 @@
+require "working_hours/duration"
+
 module WorkingHours
   class DurationProxy
 

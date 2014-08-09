@@ -1,7 +1,9 @@
 require 'date'
+require 'working_hours/computation'
 
 module WorkingHours
   class Duration
+    include Computation
 
     attr_accessor :value, :kind
 
@@ -27,10 +29,10 @@ module WorkingHours
     # end
 
     def +(other)
-      unless other.kind_of?(Time) || other.kind_of?(Date)
+      unless other.respond_to?(:in_time_zone)
         raise TypeError.new("Can't convert #{other.class} to a time")
       end
-      send("add_#{@kind}", other)
+      send("add_#{@kind}", other, @value)
     end
 
     def from_now
@@ -39,16 +41,40 @@ module WorkingHours
 
     private
 
-    def config
-      WorkingHours::Config
+    def add_days origin, days
+      time = origin.in_time_zone(config[:time_zone])
+      while days > 0
+        time += 1.day
+        days -= 1 if working_day?(time)
+      end
+      convert_to_original_format time, origin
     end
 
-    def add_days origin
-      days_to_add = @value
-      time = origin.in_time_zone(config.time_zone)
-      while days_to_add > 0
-        time += 1.day
-        days_to_add -= 1 unless skip_day?(time)
+    def add_hours origin, hours
+      add_minutes origin, hours*60
+    end
+
+    def add_minutes origin, minutes
+      add_seconds origin, minutes*60
+    end
+
+    def add_seconds origin, seconds
+      time = origin.in_time_zone(config[:time_zone])
+      while seconds > 0
+        # roll to next business period
+        time = advance_to_working_time(time)
+        # look at working ranges
+        time_in_day = time.seconds_since_midnight
+        config[:working_hours][time.wday].each do |from, to|
+          if time_in_day >= from and time_in_day < to
+            # take all we can
+            take = [to - time_in_day, seconds].min
+            # advance time
+            time += take
+            # decrease seconds
+            seconds -= take
+          end
+        end
       end
       convert_to_original_format time, origin
     end
@@ -59,11 +85,6 @@ module WorkingHours
       when DateTime then time.to_datetime
       else time
       end
-    end
-
-    def skip_day?(day)
-      day_of_week = day.strftime('%a').downcase.to_sym
-      !config.working_hours.key?(day_of_week) || config.holidays.include?(day.to_date)
     end
   end
 end
