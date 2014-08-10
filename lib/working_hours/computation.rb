@@ -11,6 +11,10 @@ module WorkingHours
         time += 1.day
         days -= 1 if working_day?(time)
       end
+      while days < 0
+        time -= 1.day
+        days += 1 if working_day?(time)
+      end
       convert_to_original_format time, origin
     end
 

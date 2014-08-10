@@ -4,17 +4,22 @@ describe WorkingHours::Computation do
   include WorkingHours::Computation
 
   describe '#add_days' do
-    it 'can add any date to a working days duration' do
+    it 'can add working days to date' do
       date = Date.new(1991, 11, 15) #Friday
       expect(add_days(date, 2)).to eq(Date.new(1991, 11, 19)) # Tuesday
     end
 
-    it 'can add any time to a working days duration' do
+    it 'can substract working days from date' do
+      date = Date.new(1991, 11, 15) #Friday
+      expect(add_days(date, -7)).to eq(Date.new(1991, 11, 6)) # Wednesday
+    end
+
+    it 'can add working days to time' do
       time = Time.local(1991, 11, 15, 14, 00, 42)
       expect(add_days(time, 1)).to eq(Time.local(1991, 11, 18, 14, 00, 42)) # Monday
     end
 
-    it 'can add any ActiveSupport::TimeWithZone to a working days duration' do
+    it 'can add working days to ActiveSupport::TimeWithZone' do
       time = Time.utc(1991, 11, 15, 14, 00, 42)
       time_monday = Time.utc(1991, 11, 18, 14, 00, 42)
       time_with_zone = ActiveSupport::TimeWithZone.new(time, 'Tokyo')
