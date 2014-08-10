@@ -3,6 +3,79 @@ require 'spec_helper'
 describe WorkingHours::Computation do
   include WorkingHours::Computation
 
+  describe '#add_days' do
+    it 'can add any date to a working days duration' do
+      date = Date.new(1991, 11, 15) #Friday
+      expect(add_days(date, 2)).to eq(Date.new(1991, 11, 19)) # Tuesday
+    end
+
+    it 'can add any time to a working days duration' do
+      time = Time.local(1991, 11, 15, 14, 00, 42)
+      expect(add_days(time, 1)).to eq(Time.local(1991, 11, 18, 14, 00, 42)) # Monday
+    end
+
+    it 'can add any ActiveSupport::TimeWithZone to a working days duration' do
+      time = Time.utc(1991, 11, 15, 14, 00, 42)
+      time_monday = Time.utc(1991, 11, 18, 14, 00, 42)
+      time_with_zone = ActiveSupport::TimeWithZone.new(time, 'Tokyo')
+      expect(add_days(time_with_zone, 1)).to eq(ActiveSupport::TimeWithZone.new(time_monday, 'Tokyo'))
+    end
+
+    it 'skips non worked days' do
+      time = Date.new(2014, 4, 7) # Monday
+      WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}}
+      expect(add_days(time, 1)).to eq(Date.new(2014, 4, 9)) # Wednesday
+    end
+
+    it 'skips holidays' do
+      time = Date.new(2014, 4, 7) # Monday
+      WorkingHours::Config.holidays = [Date.new(2014, 4, 8)] # Tuesday
+      expect(add_days(time, 1)).to eq(Date.new(2014, 4, 9)) # Wednesday
+    end
+
+    it 'skips holidays and non worked days' do
+      time = Date.new(2014, 4, 7) # Monday
+      WorkingHours::Config.holidays = [Date.new(2014, 4, 9)] # Wednesday
+      WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}}
+      expect(add_days(time, 3)).to eq(Date.new(2014, 4, 21))
+    end
+
+    it 'accepts time given from any time zone' do
+      time = Time.utc(1991, 11, 14, 21, 0, 0) # Thursday 21 pm UTC
+      WorkingHours::Config.time_zone = 'Tokyo' # But we are at tokyo, so it's already Friday 6 am
+      monday = Time.new(1991, 11, 18, 6, 0, 0, "+09:00") # so one working day later, we are monday (Tokyo)
+      expect(add_days(time, 1)).to eq(monday)
+    end
+  end
+
+  describe '#add_hours' do
+    it 'adds working hours' do
+      time = Time.utc(1991, 11, 15, 14, 00, 42) # Friday
+      expect(add_hours(time, 2)).to eq(Time.utc(1991, 11, 15, 16, 00, 42))
+    end
+
+    it 'accepts time given from any time zone' do
+      time = Time.utc(1991, 11, 15, 7, 0, 0) # Friday 7 am UTC
+      WorkingHours::Config.time_zone = 'Tokyo' # But we are at tokyo, so it's already 4 pm
+      monday = Time.new(1991, 11, 18, 11, 0, 0, "+09:00") # so 3 working hours later, we are monday (Tokyo)
+      expect(add_hours(time, 3)).to eq(monday)
+    end
+  end
+
+  describe '#add_minutes' do
+    it 'adds working minutes' do
+      time = Time.utc(1991, 11, 15, 16, 30, 42) # Friday
+      expect(add_minutes(time, 45)).to eq(Time.utc(1991, 11, 18, 9, 15, 42))
+    end
+  end
+
+  describe '#add_seconds' do
+    it 'adds working seconds' do
+      time = Time.utc(1991, 11, 15, 16, 59, 42) # Friday
+      expect(add_seconds(time, 120)).to eq(Time.utc(1991, 11, 18, 9, 1, 42))
+    end
+  end
+
   describe '.advance_to_working_time' do
     it 'jumps non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
