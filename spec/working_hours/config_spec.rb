@@ -44,7 +44,16 @@ describe WorkingHours::Config do
       expect(config).to eq(time_sheet)
     end
 
-    it "can't be modified once precompiled"
+    it "can't be modified once precompiled" do
+      time_sheet = {:mon => {'08:00' => '14:00'}}
+      WorkingHours::Config.working_hours = time_sheet
+      expect {
+        WorkingHours::Config.working_hours[:tue] = {'08:00' => '14:00'}
+      }.to raise_error(RuntimeError, "can't modify frozen Hash")
+      expect {
+        WorkingHours::Config.working_hours[:mon]['08:00'] = '15:00'
+      }.to raise_error(RuntimeError, "can't modify frozen Hash")
+    end
 
     describe 'validations' do
       it 'rejects empty hash' do
@@ -107,7 +116,11 @@ describe WorkingHours::Config do
       expect(config).to eq([Date.today])
     end
 
-    it "can't be modified once precompiled"
+    it "can't be modified once precompiled" do
+      expect {
+        WorkingHours::Config.holidays << Date.today
+      }.to raise_error(RuntimeError, "can't modify frozen Array")
+    end
 
     describe 'validation' do
       it 'rejects other type than array' do
@@ -141,7 +154,11 @@ describe WorkingHours::Config do
       expect(config).to eq(ActiveSupport::TimeZone['Tokyo'])
     end
 
-    it "can't be modified once precompiled"
+    it "can't be modified once precompiled" do
+      expect {
+        WorkingHours::Config.time_zone.instance_variable_set(:@name, 'Bordeaux')
+      }.to raise_error(RuntimeError, "can't modify frozen ActiveSupport::TimeZone")
+    end
 
     describe 'validation' do
       it 'rejects invalid types' do
@@ -164,7 +181,7 @@ describe WorkingHours::Config do
     it 'computes an optimized version' do
       expect(subject).to eq({
           :working_hours => [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}],
-          :holidays => [],
+          :holidays => Set.new([]),
           :time_zone => ActiveSupport::TimeZone['UTC']
         })
     end
@@ -194,7 +211,7 @@ describe WorkingHours::Config do
         WorkingHours::Config.holidays = [Date.new(2014, 8, 1), Date.new(2014, 7, 1)]
       }.to change {
         WorkingHours::Config.precompiled[:holidays]
-      }.from([]).to([Date.new(2014, 7, 1), Date.new(2014, 8, 1)])
+      }.from(Set.new([])).to(Set.new([Date.new(2014, 8, 1), Date.new(2014, 7, 1)]))
     end
 
     it 'changes if config is reset' do

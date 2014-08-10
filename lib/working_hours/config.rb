@@ -1,27 +1,32 @@
+require 'set'
+require 'working_hours/deep_freeze'
+
 module WorkingHours
   class Config
+    using WorkingHours::DeepFreeze
+
     TIME_FORMAT = /\A([0-1][0-9]|2[0-3]):([0-5][0-9])\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
 
     class << self
 
       def working_hours
-        config[:working_hours].freeze
+        config[:working_hours]
       end
 
       def working_hours=(val)
         validate_working_hours! val
-        config[:working_hours] = val
+        config[:working_hours] = val.deep_freeze
         config.delete :precompiled
       end
 
       def holidays
-        config[:holidays].freeze
+        config[:holidays]
       end
 
       def holidays=(val)
         validate_holidays! val
-        config[:holidays] = val
+        config[:holidays] = val.deep_freeze
         config.delete :precompiled
       end
 
@@ -35,19 +40,19 @@ module WorkingHours
               compiled[:working_hours][DAYS_OF_WEEK.index(day)][compile_time(start)] = compile_time(finish)
             end
           end
-          compiled[:holidays] = holidays.sort
+          compiled[:holidays] = Set.new(holidays)
           compiled[:time_zone] = time_zone
           compiled
         end
       end
 
       def time_zone
-        config[:time_zone].freeze
+        config[:time_zone]
       end
 
       def time_zone=(val)
         zone = validate_time_zone! val
-        config[:time_zone] = zone
+        config[:time_zone] = zone.freeze
         config.delete :precompiled
       end
 
@@ -69,10 +74,70 @@ module WorkingHours
             wed: {'09:00' => '17:00'},
             thu: {'09:00' => '17:00'},
             fri: {'09:00' => '17:00'}
-          },
-          holidays: [],
-          time_zone: ActiveSupport::TimeZone['UTC']
+          }.freeze,
+          holidays: [].freeze,
+          time_zone: ActiveSupport::TimeZone['UTC'].freeze
         }
+      end
+
+      def compile_time time
+        hour = time[TIME_FORMAT,1].to_i
+        min = time[TIME_FORMAT,2].to_i
+        hour * 3600 + min * 60
+      end
+
+      def validate_working_hours! week
+        if week.empty?
+          raise InvalidConfiguration.new "No working hours given"
+        end
+        if (invalid_keys = (week.keys - DAYS_OF_WEEK)).any?
+          raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be 3 letter symbols"
+        end
+        week.each do |day, hours|
+          if not hours.is_a? Hash
+            raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
+          elsif hours.empty?
+            raise InvalidConfiguration.new "No working hours given for day `#{day}`"
+          end
+          last_time = nil
+          hours.each do |start, finish|
+            if not start =~ TIME_FORMAT
+              raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM'"
+            elsif not finish =~ TIME_FORMAT
+              raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM'"
+            elsif start >= finish
+              raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - ends before it starts"
+            elsif last_time and start < last_time
+              raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - overlaps previous range"
+            end
+            last_time = finish
+          end
+        end
+      end
+
+      def validate_holidays! holidays
+        if not holidays.is_a? Array
+          raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must be Array"
+        end
+        holidays.each do |day|
+          if not day.is_a? Date
+            raise InvalidConfiguration.new "Invalid holiday: #{day} - must be Date"
+          end
+        end
+      end
+
+      def validate_time_zone! zone
+        if zone.is_a? String
+          res = ActiveSupport::TimeZone[zone]
+          if res.nil?
+            raise InvalidConfiguration.new "Unknown time zone: #{zone}"
+          end
+        elsif zone.is_a? ActiveSupport::TimeZone
+          res = zone
+        else
+          raise InvalidConfiguration.new "Invalid time zone: #{zone.inspect} - must be String or ActiveSupport::TimeZone"
+        end
+        res
       end
 
     end
@@ -81,66 +146,5 @@ module WorkingHours
 
     def initialize
     end
-
-    def self.compile_time time
-      hour = time[TIME_FORMAT,1].to_i
-      min = time[TIME_FORMAT,2].to_i
-      hour * 3600 + min * 60
-    end
-
-    def self.validate_working_hours! week
-      if week.empty?
-        raise InvalidConfiguration.new "No working hours given"
-      end
-      if (invalid_keys = (week.keys - DAYS_OF_WEEK)).any?
-        raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be 3 letter symbols"
-      end
-      week.each do |day, hours|
-        if not hours.is_a? Hash
-          raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
-        elsif hours.empty?
-          raise InvalidConfiguration.new "No working hours given for day `#{day}`"
-        end
-        last_time = nil
-        hours.each do |start, finish|
-          if not start =~ TIME_FORMAT
-            raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM'"
-          elsif not finish =~ TIME_FORMAT
-            raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM'"
-          elsif start >= finish
-            raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - ends before it starts"
-          elsif last_time and start < last_time
-            raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - overlaps previous range"
-          end
-          last_time = finish
-        end
-      end
-    end
-
-    def self.validate_holidays! holidays
-      if not holidays.is_a? Array
-        raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must be Array"
-      end
-      holidays.each do |day|
-        if not day.is_a? Date
-          raise InvalidConfiguration.new "Invalid holiday: #{day} - must be Date"
-        end
-      end
-    end
-
-    def self.validate_time_zone! zone
-      if zone.is_a? String
-        res = ActiveSupport::TimeZone[zone]
-        if res.nil?
-          raise InvalidConfiguration.new "Unknown time zone: #{zone}"
-        end
-      elsif zone.is_a? ActiveSupport::TimeZone
-        res = zone
-      else
-        raise InvalidConfiguration.new "Invalid time zone: #{zone.inspect} - must be String or ActiveSupport::TimeZone"
-      end
-      res
-    end
-
   end
 end

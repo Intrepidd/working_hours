@@ -7,7 +7,7 @@ module WorkingHours
 
     attr_accessor :value, :kind
 
-    SUPPORTED_KINDS = [:days, :hours, :minutes]
+    SUPPORTED_KINDS = [:days, :hours, :minutes, :seconds]
 
     def initialize(value, kind)
       raise WorkingHours::UnknownDuration unless SUPPORTED_KINDS.include?(kind)
