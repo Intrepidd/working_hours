@@ -19,11 +19,11 @@ module WorkingHours
     end
 
     def add_hours origin, hours
-      add_minutes origin, hours*60
+      add_minutes origin, hours * 60
     end
 
     def add_minutes origin, minutes
-      add_seconds origin, minutes*60
+      add_seconds origin, minutes * 60
     end
 
     def add_seconds origin, seconds
