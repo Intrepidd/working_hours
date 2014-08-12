@@ -31,7 +31,7 @@ Time.new(1969, 8, 4, 8, 32) - 4.working.hours
 friday.working_days_until(monday) # => 1
 
 # Compute working duration between two times
-time1.business_time_until(time2)
+time1.working_time_until(time2)
 
 # Know if a day is worked
 Date.new(1989, 12, 31).working_day?
