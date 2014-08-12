@@ -65,6 +65,12 @@ describe WorkingHours::Computation do
       monday = Time.new(1991, 11, 18, 11, 0, 0, "+09:00") # so 3 working hours later, we are monday (Tokyo)
       expect(add_hours(time, 3)).to eq(monday)
     end
+
+    it 'moves correctly with multiple timespans' do
+      WorkingHours::Config.working_hours = {mon: {'07:00' => '12:00', '13:00' => '18:00'}}
+      time = Time.utc(1991, 11, 11, 5) # Monday 6 am UTC
+      expect(add_hours(time, 6)).to eq(Time.utc(1991, 11, 11, 14))
+    end
   end
 
   describe '#add_minutes' do
