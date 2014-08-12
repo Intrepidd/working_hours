@@ -3,7 +3,7 @@ require 'working_hours/deep_freeze'
 
 module WorkingHours
   class Config
-    using WorkingHours::DeepFreeze
+    extend WorkingHours::DeepFreeze
 
     TIME_FORMAT = /\A([0-1][0-9]|2[0-3]):([0-5][0-9])\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
@@ -16,7 +16,7 @@ module WorkingHours
 
       def working_hours=(val)
         validate_working_hours! val
-        config[:working_hours] = val.deep_freeze
+        config[:working_hours] = deep_freeze(val)
         config.delete :precompiled
       end
 
@@ -26,7 +26,7 @@ module WorkingHours
 
       def holidays=(val)
         validate_holidays! val
-        config[:holidays] = val.deep_freeze
+        config[:holidays] = deep_freeze(val)
         config.delete :precompiled
       end
 
