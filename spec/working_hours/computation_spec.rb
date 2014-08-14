@@ -112,10 +112,10 @@ describe WorkingHours::Computation do
       expect(advance_to_working_time(Time.utc(2014, 4, 7, 13, 0))).to eq(Time.utc(2014, 4, 7, 13, 0))
     end
 
-    it 'works with any timezone (consider config in same timezone)' do
-      time_with_zone = Time.utc(2014, 4, 7, 0, 0).in_time_zone(ActiveSupport::TimeZone['Tokyo'])
-      expect(advance_to_working_time(time_with_zone)).to eq(time_with_zone)
-      expect(advance_to_working_time(Time.new(2014, 4, 7, 17, 0, 0 , "+05:00"))).to eq(Time.new(2014, 4, 8, 9, 0, 0 , "+05:00"))
+    it 'works with any input timezone (converts to config)' do
+      # Monday 0 am (-09:00) is 9am in UTC time, working time!
+      expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0 , "-09:00"))).to eq(Time.utc(2014, 4, 7, 9))
+      expect(advance_to_working_time(Time.new(2014, 4, 7, 22, 0, 0 , "+02:00"))).to eq(Time.utc(2014, 4, 8, 9))
     end
   end
 
@@ -160,9 +160,9 @@ describe WorkingHours::Computation do
     end
 
     it 'works with any timezone' do
-      time_with_zone = Time.utc(2014, 4, 7, 0, 0).in_time_zone(ActiveSupport::TimeZone['Tokyo'])
       # Monday 00:00 am UTC is 09:00 am Tokyo, working time !
-      expect(in_working_hours?(time_with_zone)).to be(true)
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect(in_working_hours?(Time.utc(2014, 4, 7, 0, 0))).to be(true)
     end
   end
 end
