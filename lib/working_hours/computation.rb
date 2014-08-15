@@ -123,6 +123,8 @@ module WorkingHours
         time.in_time_zone(config[:time_zone])
       elsif time.is_a? Date
         config[:time_zone].local(time.year, time.month, time.day)
+      else
+        raise TypeError.new("Can't convert #{time.class} to a Time")
       end
     end
 

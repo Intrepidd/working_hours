@@ -15,6 +15,18 @@ module WorkingHours
       @kind = kind
     end
 
+    # Computation methods
+    def until(time = ::Time.current)
+      send("add_#{@kind}", time, -@value)
+    end
+    alias :ago :until
+
+    def since(time = ::Time.current)
+      send("add_#{@kind}", time, @value)
+    end
+    alias :from_now :since
+
+    # Value object methods
     def -@
       Duration.new(-value, kind)
     end
@@ -26,21 +38,6 @@ module WorkingHours
 
     def hash
       [self.class, kind, value].hash
-    end
-
-    def +(other)
-      unless other.respond_to?(:in_time_zone)
-        raise TypeError.new("Can't convert #{other.class} to a time")
-      end
-      send("add_#{@kind}", other, @value)
-    end
-
-    def from_now
-      self + Time.now
-    end
-
-    def ago
-      (-self) + Time.now
     end
 
   end

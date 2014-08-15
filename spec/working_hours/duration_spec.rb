@@ -43,17 +43,35 @@ describe WorkingHours::Duration do
     end
   end
 
-  describe '#from_now' do
+  describe '#since' do
     it "performs addition with Time.now" do
+      Timecop.freeze(Time.utc(1991, 11, 15, 21)) # we are Friday 21 pm UTC
+      expect(1.working.day.since).to eq(Time.utc(1991, 11, 18, 21))
+    end
+
+    it "is aliased to from_now" do
       Timecop.freeze(Time.utc(1991, 11, 15, 21)) # we are Friday 21 pm UTC
       expect(1.working.day.from_now).to eq(Time.utc(1991, 11, 18, 21))
     end
+
+    it "accepts reference time as argument" do
+      expect(1.working.day.since(Time.utc(1991, 11, 15, 21))).to eq(Time.utc(1991, 11, 18, 21))
+    end
   end
 
-  describe '#ago' do
+  describe '#until' do
     it "performs substraction with Time.now" do
       Timecop.freeze(Time.utc(1991, 11, 15, 21)) # we are Friday 21 pm UTC
+      expect(7.working.day.until).to eq(Time.utc(1991, 11, 6, 21))
+    end
+
+    it "is aliased to ago" do
+      Timecop.freeze(Time.utc(1991, 11, 15, 21)) # we are Friday 21 pm UTC
       expect(7.working.day.ago).to eq(Time.utc(1991, 11, 6, 21))
+    end
+
+    it "accepts reference time as argument" do
+      expect(7.working.day.until(Time.utc(1991, 11, 15, 21))).to eq(Time.utc(1991, 11, 6, 21))
     end
   end
 
