@@ -1,3 +1,3 @@
 class DateTime
-  prepend WorkingHours::CoreExt::Calculations
+  prepend WorkingHours::CoreExt::DateAndTime::Calculations
 end

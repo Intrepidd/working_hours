@@ -1,23 +1,24 @@
 module WorkingHours
   module CoreExt
-    module Calculations
+  module DateAndTime
+      module Calculations
 
-      def +(other)
-        if (other.is_a?(WorkingHours::Duration))
-          other + self
-        else
-          super(other)
+        def +(other)
+          if (other.is_a?(WorkingHours::Duration))
+            other + self
+          else
+            super(other)
+          end
+        end
+
+        def -(other)
+          if (other.is_a?(WorkingHours::Duration))
+            other - self
+          else
+            super(other)
+          end
         end
       end
-
-      def -(other)
-        if (other.is_a?(WorkingHours::Duration))
-          other - self
-        else
-          super(other)
-        end
-      end
-
     end
   end
 end
