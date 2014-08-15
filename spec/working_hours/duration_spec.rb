@@ -32,12 +32,15 @@ describe WorkingHours::Duration do
     it 'should not work with anything else' do
       expect {
         duration = WorkingHours::Duration.new(42, :foo)
-      }.to raise_error WorkingHours::UnknownDuration
+      }.to raise_error ArgumentError, "Invalid working time unit: foo"
     end
   end
 
-  describe 'substraction' do
-    pending
+  describe '#-@' do
+    it 'inverses value' do
+      expect(-2.working.days).to eq(WorkingHours::Duration.new(-2, :days))
+      expect(-(-1.working.hour)).to eq(WorkingHours::Duration.new(1, :hours))
+    end
   end
 
   describe '#from_now' do
@@ -48,7 +51,10 @@ describe WorkingHours::Duration do
   end
 
   describe '#ago' do
-    pending
+    it "performs substraction with Time.now" do
+      Timecop.freeze(Time.utc(1991, 11, 15, 21)) # we are Friday 21 pm UTC
+      expect(7.working.day.ago).to eq(Time.utc(1991, 11, 6, 21))
+    end
   end
 
 end

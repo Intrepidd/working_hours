@@ -40,12 +40,27 @@ module WorkingHours
           end
         end
       end
+      while seconds < 0
+        # roll to previous business period
+        time = return_to_working_time(time)
+        # look at working ranges
+        time_in_day = time.seconds_since_midnight
+        config[:working_hours][time.wday].reverse_each do |from, to|
+          if time_in_day > from and time_in_day <= to
+            # take all we can
+            take = [time_in_day - from, -seconds].min
+            # advance time
+            time -= take
+            # decrease seconds
+            seconds += take
+          end
+        end
+      end
       convert_to_original_format time, origin
     end
 
     def advance_to_working_time time
       time = in_config_zone(time)
-      return time if in_working_hours? time
       loop do
         # skip holidays and weekends
         while not working_day?(time)
@@ -54,10 +69,30 @@ module WorkingHours
         # find first working range after time
         time_in_day = time.seconds_since_midnight
         (Config.precompiled[:working_hours][time.wday] || {}).each do |from, to|
+          return time if time_in_day >= from and time_in_day < to
           return time + (from - time_in_day) if from >= time_in_day
         end
         # if none is found, go to next day and loop
         time = (time + 1.day).beginning_of_day
+      end
+    end
+
+    def return_to_working_time time
+      time = in_config_zone(time)
+      loop do
+        # skip holidays and weekends
+        while not working_day?(time)
+          time = (time - 1.day).end_of_day
+        end
+        # find last working range before time
+        time_in_day = time.seconds_since_midnight
+        (Config.precompiled[:working_hours][time.wday] || {}).reverse_each do |from, to|
+          # round is used to suppress miliseconds hack from `end_of_day`
+          return time.round if time_in_day > from and time_in_day <= to
+          return (time - (time_in_day - to)).round if to <= time_in_day
+        end
+        # if none is found, go to previous day and loop
+        time = (time - 1.day).end_of_day
       end
     end
 

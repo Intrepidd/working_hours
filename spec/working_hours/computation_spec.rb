@@ -59,6 +59,11 @@ describe WorkingHours::Computation do
       expect(add_hours(time, 2)).to eq(Time.utc(1991, 11, 15, 16, 00, 42))
     end
 
+    it 'can substract working hours' do
+      time = Time.utc(1991, 11, 18, 14, 00, 42) # Monday
+      expect(add_hours(time, -7)).to eq(Time.utc(1991, 11, 15, 15, 00, 42)) # Friday
+    end
+
     it 'accepts time given from any time zone' do
       time = Time.utc(1991, 11, 15, 7, 0, 0) # Friday 7 am UTC
       WorkingHours::Config.time_zone = 'Tokyo' # But we are at tokyo, so it's already 4 pm
@@ -116,6 +121,38 @@ describe WorkingHours::Computation do
       # Monday 0 am (-09:00) is 9am in UTC time, working time!
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0 , "-09:00"))).to eq(Time.utc(2014, 4, 7, 9))
       expect(advance_to_working_time(Time.new(2014, 4, 7, 22, 0, 0 , "+02:00"))).to eq(Time.utc(2014, 4, 8, 9))
+    end
+  end
+
+  describe '.return_to_working_time' do
+    it 'jumps non-working day' do
+      WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
+      expect(return_to_working_time(Time.utc(2014, 5, 1, 12, 0))).to eq(Time.utc(2014, 4, 30, 17))
+      expect(return_to_working_time(Time.utc(2014, 6, 1, 12, 0))).to eq(Time.utc(2014, 5, 30, 17))
+    end
+
+    it 'returns self during working hours' do
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 9, 1))).to eq(Time.utc(2014, 4, 7, 9, 1))
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 17, 0))).to eq(Time.utc(2014, 4, 7, 17, 0))
+    end
+
+    it 'jumps outside working hours' do
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 17, 1))).to eq(Time.utc(2014, 4, 7, 17, 0))
+      expect(return_to_working_time(Time.utc(2014, 4, 8, 9, 0))).to eq(Time.utc(2014, 4, 7, 17, 0))
+    end
+
+    it 'move between timespans' do
+      WorkingHours::Config.working_hours = {mon: {'07:00' => '12:00', '13:00' => '18:00'}}
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 13, 1))).to eq(Time.utc(2014, 4, 7, 13, 1))
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 13, 0))).to eq(Time.utc(2014, 4, 7, 12, 0))
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 12, 1))).to eq(Time.utc(2014, 4, 7, 12, 0))
+      expect(return_to_working_time(Time.utc(2014, 4, 7, 12, 0))).to eq(Time.utc(2014, 4, 7, 12, 0))
+    end
+
+    it 'works with any input timezone (converts to config)' do
+      # Monday 1 am (-09:00) is 10am in UTC time, working time!
+      expect(return_to_working_time(Time.new(2014, 4, 7, 1, 0, 0 , "-09:00"))).to eq(Time.utc(2014, 4, 7, 10))
+      expect(return_to_working_time(Time.new(2014, 4, 7, 22, 0, 0 , "+02:00"))).to eq(Time.utc(2014, 4, 7, 17))
     end
   end
 
