@@ -1,5 +1,7 @@
 # WorkingHours
 
+[![Build Status](https://travis-ci.org/Intrepidd/working_hours.svg?branch=master)](https://travis-ci.org/Intrepidd/working_hours)
+
 Gem allowing to do time calculation with working hours.
 
 ## Installation
