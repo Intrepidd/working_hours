@@ -8,7 +8,9 @@ Gem allowing to do time calculation with working hours.
 
 Gemfile:
 
-    gem 'working_hours'
+```ruby
+gem 'working_hours'
+```
 
 ## Usage
 
@@ -29,10 +31,13 @@ require 'working_hours'
 Date.new(1989, 12, 31) + 8.working.days
 Time.new(1969, 8, 4, 8, 32) - 4.working.hours
 
-# Compute working days between two date
+# Compute working days between two dates
 friday.working_days_until(monday) # => 1
+# Time is considered at end of day, so:
+# - friday to saturday = 0 working days
+# - sunday to monday = 1 working days
 
-# Compute working duration between two times
+# Compute working duration (in seconds) between two times
 time1.working_time_until(time2)
 
 # Know if a day is worked

@@ -66,4 +66,18 @@ describe WorkingHours::CoreExt::DateAndTime do
       expect(time - 3600).to eq(time - 1.hour)
     end
   end
+
+  describe '#working_days_until' do
+    it 'works with Time objects'
+
+    it 'works with Date objects' do
+      from = Date.new(1991, 11, 15)
+      to = Date.new(1991, 11, 22)
+      expect(WorkingHours).to receive(:working_days_between).with(from, to)
+      from.working_days_until(to)
+    end
+
+    it 'works with DateTime objects'
+    it 'works with ActiveSupport::TimeWithZone'
+  end
 end
