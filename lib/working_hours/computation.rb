@@ -1,3 +1,6 @@
+require 'active_support/all'
+require 'working_hours/config'
+
 module WorkingHours
   module Computation
 
@@ -29,7 +32,7 @@ module WorkingHours
         time = advance_to_working_time(time)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
-        config[:working_hours][time.wday].each do |from, to|
+        wh_config[:working_hours][time.wday].each do |from, to|
           if time_in_day >= from and time_in_day < to
             # take all we can
             take = [to - time_in_day, seconds].min
@@ -45,7 +48,7 @@ module WorkingHours
         time = return_to_working_time(time)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
-        config[:working_hours][time.wday].reverse_each do |from, to|
+        wh_config[:working_hours][time.wday].reverse_each do |from, to|
           if time_in_day > from and time_in_day <= to
             # take all we can
             take = [time_in_day - from, -seconds].min
@@ -136,7 +139,7 @@ module WorkingHours
         while from < to
           # look at working ranges
           time_in_day = from.seconds_since_midnight
-          config[:working_hours][from.wday].each do |begins, ends|
+          wh_config[:working_hours][from.wday].each do |begins, ends|
             if time_in_day >= begins and time_in_day < ends
               # take all we can
               take = [ends - time_in_day, to - from].min
@@ -155,16 +158,16 @@ module WorkingHours
 
     private
 
-    def config
+    def wh_config
       WorkingHours::Config.precompiled
     end
 
     # fix for ActiveRecord < 4, doesn't implement in_time_zone for Date
     def in_config_zone time
       if time.respond_to? :in_time_zone
-        time.in_time_zone(config[:time_zone])
+        time.in_time_zone(wh_config[:time_zone])
       elsif time.is_a? Date
-        config[:time_zone].local(time.year, time.month, time.day)
+        wh_config[:time_zone].local(time.year, time.month, time.day)
       else
         raise TypeError.new("Can't convert #{time.class} to a Time")
       end

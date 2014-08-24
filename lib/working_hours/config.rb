@@ -2,6 +2,8 @@ require 'set'
 require 'working_hours/deep_freeze'
 
 module WorkingHours
+  InvalidConfiguration = Class.new StandardError
+
   class Config
     extend WorkingHours::DeepFreeze
 

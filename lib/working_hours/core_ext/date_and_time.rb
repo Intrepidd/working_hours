@@ -1,4 +1,5 @@
-require 'working_hours/duration'
+require 'active_support/time_with_zone'
+require 'working_hours/module'
 
 module WorkingHours
   module CoreExt
