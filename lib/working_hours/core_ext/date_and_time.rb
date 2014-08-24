@@ -24,6 +24,10 @@ module WorkingHours
         WorkingHours.working_days_between(self, other)
       end
 
+      def working_time_until(other)
+        WorkingHours.working_time_between(self, other)
+      end
+
     end
   end
 end

@@ -68,7 +68,12 @@ describe WorkingHours::CoreExt::DateAndTime do
   end
 
   describe '#working_days_until' do
-    it 'works with Time objects'
+    it 'works with Time objects' do
+      from = Time.new(1991, 11, 15)
+      to = Time.new(1991, 11, 22)
+      expect(WorkingHours).to receive(:working_days_between).with(from, to)
+      from.working_days_until(to)
+    end
 
     it 'works with Date objects' do
       from = Date.new(1991, 11, 15)
@@ -77,7 +82,48 @@ describe WorkingHours::CoreExt::DateAndTime do
       from.working_days_until(to)
     end
 
-    it 'works with DateTime objects'
-    it 'works with ActiveSupport::TimeWithZone'
+    it 'works with DateTime objects' do
+      from = DateTime.new(1991, 11, 15)
+      to = DateTime.new(1991, 11, 22)
+      expect(WorkingHours).to receive(:working_days_between).with(from, to)
+      from.working_days_until(to)
+    end
+
+    it 'works with ActiveSupport::TimeWithZone' do
+      from = Time.new(1991, 11, 15).in_time_zone('Tokyo')
+      to = Time.new(1991, 11, 22).in_time_zone('Tokyo')
+      expect(WorkingHours).to receive(:working_days_between).with(from, to)
+      from.working_days_until(to)
+    end
+  end
+
+  describe '#working_time_until' do
+    it 'works with Time objects' do
+      from = Time.new(1991, 11, 15)
+      to = Time.new(1991, 11, 22)
+      expect(WorkingHours).to receive(:working_time_between).with(from, to)
+      from.working_time_until(to)
+    end
+
+    it 'works with Date objects' do
+      from = Date.new(1991, 11, 15)
+      to = Date.new(1991, 11, 22)
+      expect(WorkingHours).to receive(:working_time_between).with(from, to)
+      from.working_time_until(to)
+    end
+
+    it 'works with DateTime objects' do
+      from = DateTime.new(1991, 11, 15)
+      to = DateTime.new(1991, 11, 22)
+      expect(WorkingHours).to receive(:working_time_between).with(from, to)
+      from.working_time_until(to)
+    end
+
+    it 'works with ActiveSupport::TimeWithZone' do
+      from = Time.new(1991, 11, 15).in_time_zone('Tokyo')
+      to = Time.new(1991, 11, 22).in_time_zone('Tokyo')
+      expect(WorkingHours).to receive(:working_time_between).with(from, to)
+      from.working_time_until(to)
+    end
   end
 end

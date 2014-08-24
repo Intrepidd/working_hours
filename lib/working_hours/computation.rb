@@ -111,6 +111,48 @@ module WorkingHours
       false
     end
 
+    def working_days_between from, to
+      if to < from
+        -working_days_between(to, from)
+      else
+        from = in_config_zone(from)
+        to = in_config_zone(to)
+        days = 0
+        while from.to_date < to.to_date
+          from += 1.day
+          days += 1 if working_day?(from)
+        end
+        days
+      end
+    end
+
+    def working_time_between from, to
+      if to < from
+        -working_time_between(to, from)
+      else
+        from = advance_to_working_time(in_config_zone(from))
+        to = in_config_zone(to)
+        distance = 0
+        while from < to
+          # look at working ranges
+          time_in_day = from.seconds_since_midnight
+          config[:working_hours][from.wday].each do |begins, ends|
+            if time_in_day >= begins and time_in_day < ends
+              # take all we can
+              take = [ends - time_in_day, to - from].min
+              # advance time
+              from += take
+              # increase counter
+              distance += take
+            end
+          end
+          # roll to next business period
+          from = advance_to_working_time(from)
+        end
+        distance
+      end
+    end
+
     private
 
     def config

@@ -92,7 +92,7 @@ describe WorkingHours::Computation do
     end
   end
 
-  describe '.advance_to_working_time' do
+  describe '#advance_to_working_time' do
     it 'jumps non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
       expect(advance_to_working_time(Time.utc(2014, 5, 1, 12, 0))).to eq(Time.utc(2014, 5, 2, 9, 0))
@@ -124,7 +124,7 @@ describe WorkingHours::Computation do
     end
   end
 
-  describe '.return_to_working_time' do
+  describe '#return_to_working_time' do
     it 'jumps non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
       expect(return_to_working_time(Time.utc(2014, 5, 1, 12, 0))).to eq(Time.utc(2014, 4, 30, 17))
@@ -156,7 +156,7 @@ describe WorkingHours::Computation do
     end
   end
 
-  describe '.working_day?' do
+  describe '#working_day?' do
     it 'returns true on working day' do
       expect(working_day?(Date.new(2014, 4, 7))).to be(true)
     end
@@ -171,7 +171,7 @@ describe WorkingHours::Computation do
     end
   end
 
-  describe '.in_working_hours?' do
+  describe '#in_working_hours?' do
     it 'returns false in non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
       expect(in_working_hours?(Time.utc(2014, 5, 1, 12, 0))).to be(false)
@@ -200,6 +200,103 @@ describe WorkingHours::Computation do
       # Monday 00:00 am UTC is 09:00 am Tokyo, working time !
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(in_working_hours?(Time.utc(2014, 4, 7, 0, 0))).to be(true)
+    end
+  end
+
+  describe '#working_days_between' do
+    it 'returns 0 if same date' do
+      expect(working_days_between(
+        Date.new(1991, 11, 15), # friday
+        Date.new(1991, 11, 15)
+      )).to eq(0)
+    end
+
+    it 'returns 0 if time in same day' do
+      expect(working_days_between(
+        Time.utc(1991, 11, 15, 8), # friday
+        Time.utc(1991, 11, 15, 4)
+      )).to eq(0)
+    end
+
+    it 'counts working days' do
+      expect(working_days_between(
+        Date.new(1991, 11, 15), # friday to friday
+        Date.new(1991, 11, 22)
+      )).to eq(5)
+    end
+
+    it 'returns negative if params are reversed' do
+      expect(working_days_between(
+        Date.new(1991, 11, 22), # friday to friday
+        Date.new(1991, 11, 15)
+      )).to eq(-5)
+    end
+
+    context 'consider time at end of day' do
+      it 'returns 0 from friday to saturday' do
+        expect(working_days_between(
+          Date.new(1991, 11, 15), # friday to saturday
+          Date.new(1991, 11, 16)
+        )).to eq(0)
+      end
+
+      it 'returns 1 from sunday to monday' do
+        expect(working_days_between(
+          Date.new(1991, 11, 17), # sunday to monday
+          Date.new(1991, 11, 18)
+        )).to eq(1)
+      end
+    end
+  end
+
+  describe '#working_time_between' do
+    it 'returns 0 if same time' do
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 8),
+        Time.utc(2014, 4, 7, 8)
+      )).to eq(0)
+    end
+
+    it 'returns distance in same period' do
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 10),
+        Time.utc(2014, 4, 7, 15)
+      )).to eq(5.hours)
+    end
+
+    it 'returns negative if params are reversed' do
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 15),
+        Time.utc(2014, 4, 7, 10)
+      )).to eq(-5.hours)
+    end
+
+    it 'returns full day if outside period' do
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 7),
+        Time.utc(2014, 4, 7, 20)
+      )).to eq(8.hours)
+    end
+
+    it 'handles multiple timespans' do
+      WorkingHours::Config.working_hours = {
+        mon: {'07:00' => '12:00', '13:00' => '18:00'}
+      }
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 11, 59),
+        Time.utc(2014, 4, 7, 13, 1)
+      )).to eq(2.minutes)
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 11),
+        Time.utc(2014, 4, 14, 13)
+      )).to eq(11.hours)
+    end
+
+    it 'works with any timezone (converts to config)' do
+      expect(working_time_between(
+        Time.new(2014, 4, 7, 1, 0, 0, "-09:00"), # Monday 10am in UTC
+        Time.new(2014, 4, 7, 15, 0, 0, "-04:00"), # Monday 7pm in UTC
+      )).to eq(7.hours)
     end
   end
 end
