@@ -74,7 +74,7 @@ WorkingHours::Config.time_zone = 'Paris'
 WorkingHours::Config.holidays = [Date.new(2014, 12, 31)]
 ```
 
-> Once the config has been set, internal objects are frozen and you **can't** modify them (ex: `holidays << Date.today`). This is because the configuration is precompiled to a computing friendly form and changes would not be taken into account. To change the config you **must use** one of the 3 setters shown above.
+> Once the config has been set, internal objects are frozen and you **can't** modify them (ex: `holidays << Date.today`). This is because the configuration is compiled into a calculation friendly form and these changes would not be taken into account. To alter the config you **must use** one of the 3 setters shown above.
 
 ## No core extensions / monkey patching
 
@@ -139,11 +139,11 @@ This gem uses a simple but efficient approach in dealing with timezones. When yo
 
 ## Alternatives
 
-There is a gem called [business_time](https://github.com/bokmann/business_time) already available to do this kind of computation and it was of great help to us. But we decided to start another one because business_time is suffering from a [few](https://github.com/bokmann/business_time/issues/50) [bugs](https://github.com/bokmann/business_time/pull/84) and inconsistencies regarding timezones. It also lacks essential features to us (like working minutes computation).
+There is a gem called [business_time](https://github.com/bokmann/business_time) already available to do this kind of computation and it was of great help to us. But we decided to start another one because business_time is suffering from a few [bugs](https://github.com/bokmann/business_time/pull/84) and [inconsistencies](https://github.com/bokmann/business_time/issues/50). It also lacks essential features to us (like working minutes computation).
 
 ## Contributing
 
-1. Fork it ( http://github.com/<my-github-username>/working_hours/fork )
+1. Fork it ( http://github.com/intrepidd/working_hours/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
