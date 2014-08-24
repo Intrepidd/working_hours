@@ -23,7 +23,7 @@ module WorkingHours
     end
 
     def add_seconds origin, seconds
-      time = in_config_zone(origin)
+      time = in_config_zone(origin).round
       while seconds > 0
         # roll to next business period
         time = advance_to_working_time(time)
@@ -60,7 +60,7 @@ module WorkingHours
     end
 
     def advance_to_working_time time
-      time = in_config_zone(time)
+      time = in_config_zone(time).round
       loop do
         # skip holidays and weekends
         while not working_day?(time)
@@ -78,7 +78,7 @@ module WorkingHours
     end
 
     def return_to_working_time time
-      time = in_config_zone(time)
+      time = in_config_zone(time).round
       loop do
         # skip holidays and weekends
         while not working_day?(time)
@@ -131,7 +131,7 @@ module WorkingHours
         -working_time_between(to, from)
       else
         from = advance_to_working_time(in_config_zone(from))
-        to = in_config_zone(to)
+        to = in_config_zone(to).round
         distance = 0
         while from < to
           # look at working ranges

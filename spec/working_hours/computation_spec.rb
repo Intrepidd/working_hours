@@ -257,6 +257,20 @@ describe WorkingHours::Computation do
       )).to eq(0)
     end
 
+    it 'returns 0 during non working time' do
+      expect(working_time_between(
+        Time.utc(2014, 4, 11, 20), # Friday evening
+        Time.utc(2014, 4, 14, 5) # Monday early
+      )).to eq(0)
+    end
+
+    it 'ignores miliseconds' do
+      expect(working_time_between(
+        Time.utc(2014, 4, 13, 9, 10, 24.01),
+        Time.utc(2014, 4, 14, 9, 10, 24.02),
+      )).to eq(624)
+    end
+
     it 'returns distance in same period' do
       expect(working_time_between(
         Time.utc(2014, 4, 7, 10),
