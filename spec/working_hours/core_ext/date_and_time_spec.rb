@@ -126,4 +126,56 @@ describe WorkingHours::CoreExt::DateAndTime do
       from.working_time_until(to)
     end
   end
+
+  describe '#working_day?' do
+    it 'works with Time objects' do
+      time = Time.new(1991, 11, 15)
+      expect(WorkingHours).to receive(:working_day?).with(time)
+      time.working_day?
+    end
+
+    it 'works with Date objects' do
+      time = Date.new(1991, 11, 15)
+      expect(WorkingHours).to receive(:working_day?).with(time)
+      time.working_day?
+    end
+
+    it 'works with DateTime objects' do
+      time = DateTime.new(1991, 11, 15)
+      expect(WorkingHours).to receive(:working_day?).with(time)
+      time.working_day?
+    end
+
+    it 'works with ActiveSupport::TimeWithZone' do
+      time = Time.new(1991, 11, 15).in_time_zone('Tokyo')
+      expect(WorkingHours).to receive(:working_day?).with(time)
+      time.working_day?
+    end
+  end
+
+  describe '#in_working_hours?' do
+    it 'works with Time objects' do
+      time = Time.new(1991, 11, 15)
+      expect(WorkingHours).to receive(:in_working_hours?).with(time)
+      time.in_working_hours?
+    end
+
+    it 'works with Date objects' do
+      time = Date.new(1991, 11, 15)
+      expect(WorkingHours).to receive(:in_working_hours?).with(time)
+      time.in_working_hours?
+    end
+
+    it 'works with DateTime objects' do
+      time = DateTime.new(1991, 11, 15)
+      expect(WorkingHours).to receive(:in_working_hours?).with(time)
+      time.in_working_hours?
+    end
+
+    it 'works with ActiveSupport::TimeWithZone' do
+      time = Time.new(1991, 11, 15).in_time_zone('Tokyo')
+      expect(WorkingHours).to receive(:in_working_hours?).with(time)
+      time.in_working_hours?
+    end
+  end
 end

@@ -28,6 +28,13 @@ module WorkingHours
         WorkingHours.working_time_between(self, other)
       end
 
+      def working_day?
+        WorkingHours.working_day?(self)
+      end
+
+      def in_working_hours?
+        WorkingHours.in_working_hours?(self)
+      end
     end
   end
 end
