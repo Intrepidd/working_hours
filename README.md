@@ -117,21 +117,19 @@ WorkingHours.in_working_hours?(Time.utc(2014, 8, 4, 7, 16)) # => false
 
 ## Use in your class/module
 
-If you want to use working hours inside a specific class or module, you can include its computation methods like this:
+If you want to use working hours only inside a specific class or module, you can include its computation methods like this:
 
 ```ruby
-require 'working_hours'
+require 'working_hours/module'
 
 class Order
-  include WorkingHours::Computation
+  include WorkingHours
 
   def shipping_date_estimate
-    order_date + 2.working.days
+    Duration.new(2, :days).since(order_date)
   end
 end
 ```
-
-> This also works with zero monkey patch by requiring `working_hours/module`
 
 ## Timezones
 
