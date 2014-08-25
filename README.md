@@ -126,7 +126,11 @@ class Order
   include WorkingHours
 
   def shipping_date_estimate
-    Duration.new(2, :days).since(order_date)
+    Duration.new(2, :days).since(paiement_received_at)
+  end
+
+  def paiement_delay
+    working_days_between(created_at, paiement_received_at)
   end
 end
 ```
