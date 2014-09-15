@@ -4,33 +4,36 @@ require 'working_hours/config'
 module WorkingHours
   module Computation
 
-    def add_days origin, days
-      time = in_config_zone(origin)
+    def add_days origin, days, config: nil
+      config ||= wh_config
+      time = in_config_zone(origin, config: config)
       while days > 0
         time += 1.day
-        days -= 1 if working_day?(time)
+        days -= 1 if working_day?(time, config: config)
       end
       while days < 0
         time -= 1.day
-        days += 1 if working_day?(time)
+        days += 1 if working_day?(time, config: config)
       end
       convert_to_original_format time, origin
     end
 
-    def add_hours origin, hours
-      add_minutes origin, hours * 60
+    def add_hours origin, hours, config: nil
+      config ||= wh_config
+      add_minutes origin, hours * 60, config: config
     end
 
-    def add_minutes origin, minutes
-      add_seconds origin, minutes * 60
+    def add_minutes origin, minutes, config: nil
+      config ||= wh_config
+      add_seconds origin, minutes * 60, config: config
     end
 
-    def add_seconds origin, seconds
-      time = in_config_zone(origin).round
-      config = wh_config
+    def add_seconds origin, seconds, config: nil
+      config ||= wh_config
+      time = in_config_zone(origin, config: config).round
       while seconds > 0
         # roll to next business period
-        time = advance_to_working_time(time)
+        time = advance_to_working_time(time, config: config)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
         config[:working_hours][time.wday].each do |from, to|
@@ -46,7 +49,7 @@ module WorkingHours
       end
       while seconds < 0
         # roll to previous business period
-        time = return_to_working_time(time)
+        time = return_to_working_time(time, config: config)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
         config[:working_hours][time.wday].reverse_each do |from, to|
@@ -63,12 +66,12 @@ module WorkingHours
       convert_to_original_format time, origin
     end
 
-    def advance_to_working_time time
-      time = in_config_zone(time).round
-      config = wh_config
+    def advance_to_working_time time, config: nil
+      config ||= wh_config
+      time = in_config_zone(time, config: config).round
       loop do
         # skip holidays and weekends
-        while not working_day?(time)
+        while not working_day?(time, config: config)
           time = (time + 1.day).beginning_of_day
         end
         # find first working range after time
@@ -82,12 +85,12 @@ module WorkingHours
       end
     end
 
-    def return_to_working_time time
-      time = in_config_zone(time).round
-      config = wh_config
+    def return_to_working_time time, config: nil
+      config ||= wh_config
+      time = in_config_zone(time, config: config).round
       loop do
         # skip holidays and weekends
-        while not working_day?(time)
+        while not working_day?(time, config: config)
           time = (time - 1.day).end_of_day
         end
         # find last working range before time
@@ -102,45 +105,47 @@ module WorkingHours
       end
     end
 
-    def working_day? time
-      time = in_config_zone(time)
-      config = wh_config
+    def working_day? time, config: nil
+      config ||= wh_config
+      time = in_config_zone(time, config: config)
       config[:working_hours][time.wday].present? and not config[:holidays].include?(time.to_date)
     end
 
-    def in_working_hours? time
-      time = in_config_zone(time)
-      return false if not working_day?(time)
+    def in_working_hours? time, config: nil
+      config ||= wh_config
+      time = in_config_zone(time, config: config)
+      return false if not working_day?(time, config: config)
       time_in_day = time.seconds_since_midnight
-      wh_config[:working_hours][time.wday].each do |from, to|
+      config[:working_hours][time.wday].each do |from, to|
         return true if time_in_day >= from and time_in_day < to
       end
       false
     end
 
-    def working_days_between from, to
+    def working_days_between from, to, config: nil
+      config ||= wh_config
       if to < from
-        -working_days_between(to, from)
+        -working_days_between(to, from, config: config)
       else
-        from = in_config_zone(from)
-        to = in_config_zone(to)
+        from = in_config_zone(from, config: config)
+        to = in_config_zone(to, config: config)
         days = 0
         while from.to_date < to.to_date
           from += 1.day
-          days += 1 if working_day?(from)
+          days += 1 if working_day?(from, config: config)
         end
         days
       end
     end
 
-    def working_time_between from, to
+    def working_time_between from, to, config: nil
+      config ||= wh_config
       if to < from
-        -working_time_between(to, from)
+        -working_time_between(to, from, config: config)
       else
-        from = advance_to_working_time(in_config_zone(from))
-        to = in_config_zone(to).round
+        from = advance_to_working_time(in_config_zone(from, config: config))
+        to = in_config_zone(to, config: config).round
         distance = 0
-        config = wh_config
         while from < to
           # look at working ranges
           time_in_day = from.seconds_since_midnight
@@ -155,7 +160,7 @@ module WorkingHours
             end
           end
           # roll to next business period
-          from = advance_to_working_time(from)
+          from = advance_to_working_time(from, config: config)
         end
         distance
       end
@@ -168,11 +173,11 @@ module WorkingHours
     end
 
     # fix for ActiveRecord < 4, doesn't implement in_time_zone for Date
-    def in_config_zone time
+    def in_config_zone time, config: nil
       if time.respond_to? :in_time_zone
-        time.in_time_zone(wh_config[:time_zone])
+        time.in_time_zone(config[:time_zone])
       elsif time.is_a? Date
-        wh_config[:time_zone].local(time.year, time.month, time.day)
+        config[:time_zone].local(time.year, time.month, time.day)
       else
         raise TypeError.new("Can't convert #{time.class} to a Time")
       end
