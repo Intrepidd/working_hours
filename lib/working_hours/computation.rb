@@ -27,12 +27,13 @@ module WorkingHours
 
     def add_seconds origin, seconds
       time = in_config_zone(origin).round
+      config = wh_config
       while seconds > 0
         # roll to next business period
         time = advance_to_working_time(time)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
-        wh_config[:working_hours][time.wday].each do |from, to|
+        config[:working_hours][time.wday].each do |from, to|
           if time_in_day >= from and time_in_day < to
             # take all we can
             take = [to - time_in_day, seconds].min
@@ -48,7 +49,7 @@ module WorkingHours
         time = return_to_working_time(time)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
-        wh_config[:working_hours][time.wday].reverse_each do |from, to|
+        config[:working_hours][time.wday].reverse_each do |from, to|
           if time_in_day > from and time_in_day <= to
             # take all we can
             take = [time_in_day - from, -seconds].min
@@ -64,6 +65,7 @@ module WorkingHours
 
     def advance_to_working_time time
       time = in_config_zone(time).round
+      config = wh_config
       loop do
         # skip holidays and weekends
         while not working_day?(time)
@@ -71,7 +73,7 @@ module WorkingHours
         end
         # find first working range after time
         time_in_day = time.seconds_since_midnight
-        (Config.precompiled[:working_hours][time.wday] || {}).each do |from, to|
+        (config[:working_hours][time.wday] || {}).each do |from, to|
           return time if time_in_day >= from and time_in_day < to
           return time + (from - time_in_day) if from >= time_in_day
         end
@@ -82,6 +84,7 @@ module WorkingHours
 
     def return_to_working_time time
       time = in_config_zone(time).round
+      config = wh_config
       loop do
         # skip holidays and weekends
         while not working_day?(time)
@@ -89,7 +92,7 @@ module WorkingHours
         end
         # find last working range before time
         time_in_day = time.seconds_since_midnight
-        (Config.precompiled[:working_hours][time.wday] || {}).reverse_each do |from, to|
+        (config[:working_hours][time.wday] || {}).reverse_each do |from, to|
           # round is used to suppress miliseconds hack from `end_of_day`
           return time.round if time_in_day > from and time_in_day <= to
           return (time - (time_in_day - to)).round if to <= time_in_day
@@ -101,14 +104,15 @@ module WorkingHours
 
     def working_day? time
       time = in_config_zone(time)
-      Config.precompiled[:working_hours][time.wday].present? and not Config.precompiled[:holidays].include?(time.to_date)
+      config = wh_config
+      config[:working_hours][time.wday].present? and not config[:holidays].include?(time.to_date)
     end
 
     def in_working_hours? time
       time = in_config_zone(time)
       return false if not working_day?(time)
       time_in_day = time.seconds_since_midnight
-      Config.precompiled[:working_hours][time.wday].each do |from, to|
+      wh_config[:working_hours][time.wday].each do |from, to|
         return true if time_in_day >= from and time_in_day < to
       end
       false
@@ -136,10 +140,11 @@ module WorkingHours
         from = advance_to_working_time(in_config_zone(from))
         to = in_config_zone(to).round
         distance = 0
+        config = wh_config
         while from < to
           # look at working ranges
           time_in_day = from.seconds_since_midnight
-          wh_config[:working_hours][from.wday].each do |begins, ends|
+          config[:working_hours][from.wday].each do |begins, ends|
             if time_in_day >= begins and time_in_day < ends
               # take all we can
               take = [ends - time_in_day, to - from].min
