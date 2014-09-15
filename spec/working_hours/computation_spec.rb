@@ -90,6 +90,14 @@ describe WorkingHours::Computation do
       time = Time.utc(1991, 11, 15, 16, 59, 42) # Friday
       expect(add_seconds(time, 120)).to eq(Time.utc(1991, 11, 18, 9, 1, 42))
     end
+
+    it 'Calls precompiled only once' do
+      precompiled = WorkingHours::Config.precompiled
+      expect(WorkingHours::Config).to receive(:precompiled).once.and_return(precompiled) # in_config_zone and add_seconds
+      time = Time.utc(1991, 11, 15, 16, 59, 42) # Friday
+      add_seconds(time, 120)
+    end
+
   end
 
   describe '#advance_to_working_time' do

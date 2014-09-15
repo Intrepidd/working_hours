@@ -74,8 +74,6 @@ WorkingHours::Config.time_zone = 'Paris'
 WorkingHours::Config.holidays = [Date.new(2014, 12, 31)]
 ```
 
-> Once the config has been set, internal objects are frozen and you **can't** modify them (ex: `holidays << Date.today`). This is because the configuration is compiled into a calculation friendly form and these changes would not be taken into account. To alter the config you **must use** one of the 3 setters shown above.
-
 ## No core extensions / monkey patching
 
 Core extensions (monkey patching to add methods on Time, Date, Numbers, etc.) are handy but not appreciated by everyone. WorkingHours can also be used **without any monkey patching**:

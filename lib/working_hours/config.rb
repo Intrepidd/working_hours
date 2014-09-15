@@ -1,11 +1,9 @@
 require 'set'
-require 'working_hours/deep_freeze'
 
 module WorkingHours
   InvalidConfiguration = Class.new StandardError
 
   class Config
-    extend WorkingHours::DeepFreeze
 
     TIME_FORMAT = /\A([0-1][0-9]|2[0-3]):([0-5][0-9])\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
@@ -18,7 +16,7 @@ module WorkingHours
 
       def working_hours=(val)
         validate_working_hours! val
-        config[:working_hours] = deep_freeze(val)
+        config[:working_hours] = val
         config.delete :precompiled
       end
 
@@ -28,12 +26,18 @@ module WorkingHours
 
       def holidays=(val)
         validate_holidays! val
-        config[:holidays] = deep_freeze(val)
+        config[:holidays] = val
         config.delete :precompiled
       end
 
       # Returns an optimized for computing version
       def precompiled
+        config_hash = [config[:working_hours], config[:holidays], config[:time_zone]].hash
+        if config_hash != config[:config_hash]
+          config[:config_hash] = config_hash
+          config.delete :precompiled
+        end
+
         config[:precompiled] ||= begin
           compiled = {working_hours: []}
           working_hours.each do |day, hours|
@@ -54,7 +58,7 @@ module WorkingHours
 
       def time_zone=(val)
         zone = validate_time_zone! val
-        config[:time_zone] = zone.freeze
+        config[:time_zone] = zone
         config.delete :precompiled
       end
 
@@ -76,9 +80,9 @@ module WorkingHours
             wed: {'09:00' => '17:00'},
             thu: {'09:00' => '17:00'},
             fri: {'09:00' => '17:00'}
-          }.freeze,
-          holidays: [].freeze,
-          time_zone: ActiveSupport::TimeZone['UTC'].freeze
+          },
+          holidays: [],
+          time_zone: ActiveSupport::TimeZone['UTC']
         }
       end
 
