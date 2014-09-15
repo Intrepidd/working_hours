@@ -44,15 +44,15 @@ describe WorkingHours::Config do
       expect(config).to eq(time_sheet)
     end
 
-    it "can't be modified once precompiled" do
+    it "recomputes precompiled when modified" do
       time_sheet = {:mon => {'08:00' => '14:00'}}
       WorkingHours::Config.working_hours = time_sheet
       expect {
         WorkingHours::Config.working_hours[:tue] = {'08:00' => '14:00'}
-      }.to raise_error(RuntimeError, "can't modify frozen Hash")
+      }.to change { WorkingHours::Config.precompiled[:working_hours][2] }
       expect {
         WorkingHours::Config.working_hours[:mon]['08:00'] = '15:00'
-      }.to raise_error(RuntimeError, "can't modify frozen Hash")
+      }.to change { WorkingHours::Config.precompiled[:working_hours][1] }
     end
 
     describe 'validations' do
@@ -116,10 +116,10 @@ describe WorkingHours::Config do
       expect(config).to eq([Date.today])
     end
 
-    it "can't be modified once precompiled" do
+    it "recomputes precompiled when modified" do
       expect {
         WorkingHours::Config.holidays << Date.today
-      }.to raise_error(RuntimeError, "can't modify frozen Array")
+      }.to change { WorkingHours::Config.precompiled[:holidays] }.by(Set.new([Date.today]))
     end
 
     describe 'validation' do
@@ -154,10 +154,10 @@ describe WorkingHours::Config do
       expect(config).to eq(ActiveSupport::TimeZone['Tokyo'])
     end
 
-    it "can't be modified once precompiled" do
+    it "recomputes precompiled when modified" do
       expect {
         WorkingHours::Config.time_zone.instance_variable_set(:@name, 'Bordeaux')
-      }.to raise_error(RuntimeError, "can't modify frozen ActiveSupport::TimeZone")
+      }.to change { WorkingHours::Config.time_zone.name }.from('UTC').to('Bordeaux')
     end
 
     describe 'validation' do
@@ -224,8 +224,9 @@ describe WorkingHours::Config do
     end
 
     it 'is computed only once' do
-      expect(WorkingHours::Config).to receive(:compile_time).exactly(10).times
+      precompiled = WorkingHours::Config.precompiled
       3.times { WorkingHours::Config.precompiled }
+      expect(WorkingHours::Config.precompiled).to be(precompiled)
     end
   end
 end
