@@ -130,6 +130,11 @@ describe WorkingHours::Computation do
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0 , "-09:00"))).to eq(Time.utc(2014, 4, 7, 9))
       expect(advance_to_working_time(Time.new(2014, 4, 7, 22, 0, 0 , "+02:00"))).to eq(Time.utc(2014, 4, 8, 9))
     end
+
+    it 'returns time in config zone' do
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
+    end
   end
 
   describe '#return_to_working_time' do

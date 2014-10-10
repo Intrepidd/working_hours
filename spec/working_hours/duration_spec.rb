@@ -57,6 +57,11 @@ describe WorkingHours::Duration do
     it "accepts reference time as argument" do
       expect(1.working.day.since(Time.utc(1991, 11, 15, 21))).to eq(Time.utc(1991, 11, 18, 21))
     end
+
+    it 'returns time in config zone' do
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect(7.working.days.from_now.zone).to eq('JST')
+    end
   end
 
   describe '#until' do
@@ -72,6 +77,11 @@ describe WorkingHours::Duration do
 
     it "accepts reference time as argument" do
       expect(7.working.day.until(Time.utc(1991, 11, 15, 21))).to eq(Time.utc(1991, 11, 6, 21))
+    end
+
+    it 'returns time in config zone' do
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect(7.working.days.ago.zone).to eq('JST')
     end
   end
 
