@@ -135,7 +135,7 @@ end
 
 ## Timezones
 
-This gem uses a simple but efficient approach in dealing with timezones. When you define your working hours **you have to choose** a timezome associated with it (in the config example, the working hours are in Paris time). Then, any time used in calcultation will be converted to this timezone first, so you don't have to worry if your times are local or UTC as long as they are correct :)
+This gem uses a simple but efficient approach in dealing with timezones. When you define your working hours **you have to choose** a timezone associated with it (in the config example, the working hours are in Paris time). Then, any time used in calcultation will be converted to this timezone first, so you don't have to worry if your times are local or UTC as long as they are correct :)
 
 ## Alternatives
 
