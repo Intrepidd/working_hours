@@ -187,7 +187,6 @@ module WorkingHours
       case original
       when Date then time.to_date
       when DateTime then time.to_datetime
-      when Time then time.to_time
       else time
       end
     end
