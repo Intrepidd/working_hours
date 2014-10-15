@@ -1,6 +1,12 @@
 # Unreleased
 
-[Compare master with v1.0.1](https://github.com/intrepidd/working_hours/compare/v1.0.1...master)
+[Compare master with v1.0.2](https://github.com/intrepidd/working_hours/compare/v1.0.2...master)
+
+# v1.0.2
+
+* Dropped use of `prepend` in favor of `alias_method` for core extensions to increase compability with jruby.
+
+_15/10/2014_
 
 # v1.0.1
 

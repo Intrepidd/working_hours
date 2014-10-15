@@ -5,19 +5,28 @@ module WorkingHours
   module CoreExt
     module DateAndTime
 
-      def +(other)
-        if (other.is_a?(WorkingHours::Duration))
-          other.since(self)
-        else
-          super(other)
+      def self.included base
+        base.class_eval do
+          alias_method :minus_without_working_hours, :-
+          alias_method :-, :minus_with_working_hours
+          alias_method :plus_without_working_hours, :+
+          alias_method :+, :plus_with_working_hours
         end
       end
 
-      def -(other)
-        if (other.is_a?(WorkingHours::Duration))
+      def plus_with_working_hours(other)
+        if WorkingHours::Duration === other
+          other.since(self)
+        else
+          plus_without_working_hours(other)
+        end
+      end
+
+      def minus_with_working_hours(other)
+        if WorkingHours::Duration === other
           other.until(self)
         else
-          super(other)
+          minus_without_working_hours(other)
         end
       end
 
@@ -41,17 +50,17 @@ module WorkingHours
 end
 
 class Date
-  prepend WorkingHours::CoreExt::DateAndTime
+  include WorkingHours::CoreExt::DateAndTime
 end
 
 class DateTime
-  prepend WorkingHours::CoreExt::DateAndTime
+  include WorkingHours::CoreExt::DateAndTime
 end
 
 class Time
-  prepend WorkingHours::CoreExt::DateAndTime
+  include WorkingHours::CoreExt::DateAndTime
 end
 
 class ActiveSupport::TimeWithZone
-  prepend WorkingHours::CoreExt::DateAndTime
+  include WorkingHours::CoreExt::DateAndTime
 end
