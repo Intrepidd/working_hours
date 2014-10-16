@@ -98,6 +98,8 @@ WorkingHours::Duration.new(8, :days).since(Date.new(2014, 12, 31)) # => Mon, 12 
 WorkingHours::Duration.new(4, :hours).until(Time.utc(2014, 8, 4, 8, 32)) # => 2014-08-01 13:00:00
 
 # Compute working days between two dates
+friday = Date.new(2014, 10, 17)
+monday = Date.new(2014, 10, 20)
 WorkingHours.working_days_between(friday, monday) # => 1
 # Time is considered at end of day, so:
 # - friday to saturday = 0 working days
