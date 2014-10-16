@@ -36,6 +36,8 @@ Date.new(2014, 12, 31) + 8.working.days # => Mon, 12 Jan 2015
 Time.utc(2014, 8, 4, 8, 32) - 4.working.hours # => 2014-08-01 13:00:00
 
 # Compute working days between two dates
+friday = Date.new(2014, 10, 17)
+monday = Date.new(2014, 10, 20)
 friday.working_days_until(monday) # => 1
 # Time is considered at end of day, so:
 # - friday to saturday = 0 working days
@@ -123,7 +125,7 @@ require 'working_hours/module'
 class Order
   include WorkingHours
 
-  def shipping_date_estimate
+  def shipping_date_estibmate
     Duration.new(2, :days).since(paiement_received_at)
   end
 
