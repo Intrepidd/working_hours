@@ -3,7 +3,6 @@ require 'working_hours/computation'
 
 module WorkingHours
   class Duration
-    include Computation
 
     attr_accessor :value, :kind
 
@@ -17,12 +16,12 @@ module WorkingHours
 
     # Computation methods
     def until(time = ::Time.current)
-      send("add_#{@kind}", time, -@value)
+      ::WorkingHours.send("add_#{@kind}", time, -@value)
     end
     alias :ago :until
 
     def since(time = ::Time.current)
-      send("add_#{@kind}", time, @value)
+      ::WorkingHours.send("add_#{@kind}", time, @value)
     end
     alias :from_now :since
 
