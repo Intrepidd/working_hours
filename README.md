@@ -134,11 +134,11 @@ class Order
   include WorkingHours
 
   def shipping_date_estibmate
-    Duration.new(2, :days).since(paiement_received_at)
+    Duration.new(2, :days).since(payment_received_at)
   end
 
-  def paiement_delay
-    working_days_between(created_at, paiement_received_at)
+  def payment_delay
+    working_days_between(created_at, payment_received_at)
   end
 end
 ```
