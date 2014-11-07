@@ -106,7 +106,7 @@ module WorkingHours
             raise InvalidConfiguration.new "No working hours given for day `#{day}`"
           end
           last_time = nil
-          hours.each do |start, finish|
+          hours.sort.each do |start, finish|
             if not start =~ TIME_FORMAT
               raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM'"
             elsif not finish =~ TIME_FORMAT
