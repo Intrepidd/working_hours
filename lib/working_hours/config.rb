@@ -122,10 +122,10 @@ module WorkingHours
       end
 
       def validate_holidays! holidays
-        if not holidays.is_a? Array
-          raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must be Array"
+        if not holidays.respond_to?(:to_a)
+          raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must act like an array"
         end
-        holidays.each do |day|
+        holidays.to_a.each do |day|
           if not day.is_a? Date
             raise InvalidConfiguration.new "Invalid holiday: #{day} - must be Date"
           end

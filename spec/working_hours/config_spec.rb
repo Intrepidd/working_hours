@@ -129,10 +129,10 @@ describe WorkingHours::Config do
     end
 
     describe 'validation' do
-      it 'rejects other type than array' do
+      it 'rejects types that cannot be converted into an array' do
         expect {
-          WorkingHours::Config.holidays = {}
-        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for holidays: Hash - must be Array")
+          WorkingHours::Config.holidays = Object.new
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for holidays: Object - must act like an array")
       end
 
       it 'rejects invalid day' do
