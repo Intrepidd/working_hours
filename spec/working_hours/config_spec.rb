@@ -101,6 +101,12 @@ describe WorkingHours::Config do
           WorkingHours::Config.working_hours = {:mon => {'08:00' => '13:00', '12:00' => '18:00'}}
         }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid range: 12:00 => 18:00 - overlaps previous range")
       end
+
+      it 'does not reject out-of-order, non-overlapping ranges' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {'10:00' => '11:00', '08:00' => '09:00'}}
+        }.not_to raise_error
+      end
     end
   end
 
@@ -123,10 +129,10 @@ describe WorkingHours::Config do
     end
 
     describe 'validation' do
-      it 'rejects other type than array' do
+      it 'rejects types that cannot be converted into an array' do
         expect {
-          WorkingHours::Config.holidays = {}
-        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for holidays: Hash - must be Array")
+          WorkingHours::Config.holidays = Object.new
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for holidays: Object - must act like an array")
       end
 
       it 'rejects invalid day' do
