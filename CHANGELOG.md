@@ -1,6 +1,13 @@
 # Unreleased
 
-[Compare master with v1.0.2](https://github.com/intrepidd/working_hours/compare/v1.0.2...master)
+[Compare master with v1.0.3](https://github.com/intrepidd/working_hours/compare/v1.0.3...master)
+
+# v1.0.3
+
+* Relax configuration input formats - [#10](https://github.com/Intrepidd/working_hours/pull/10)
+* Small improvements to the Readme
+
+_08/11/2014_
 
 # v1.0.2
 
