@@ -39,6 +39,9 @@ module WorkingHours
         end
 
         config[:precompiled] ||= begin
+          validate_working_hours! config[:working_hours]
+          validate_holidays! config[:holidays]
+          validate_time_zone! config[:time_zone]
           compiled = {working_hours: []}
           working_hours.each do |day, hours|
             compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}

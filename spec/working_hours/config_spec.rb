@@ -107,6 +107,15 @@ describe WorkingHours::Config do
           WorkingHours::Config.working_hours = {:mon => {'10:00' => '11:00', '08:00' => '09:00'}}
         }.not_to raise_error
       end
+
+      it 'raises an error when precompiling if working hours are invalid after assignment' do
+        WorkingHours::Config.working_hours = {:mon => {'10:00' => '11:00', '08:00' => '09:00'}}
+        WorkingHours::Config.working_hours[:mon] = 'Not correct'
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid type for `mon`: String - must be Hash')
+      end
+
     end
   end
 
@@ -140,6 +149,15 @@ describe WorkingHours::Config do
           WorkingHours::Config.holidays = [Date.today, 42]
         }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid holiday: 42 - must be Date")
       end
+
+      it 'raises an error when precompiling if holidays are invalid after assignment' do
+        WorkingHours::Config.holidays = [Date.today]
+        WorkingHours::Config.holidays << 42
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid holiday: 42 - must be Date')
+      end
+
     end
   end
 
@@ -177,6 +195,14 @@ describe WorkingHours::Config do
         expect {
           WorkingHours::Config.time_zone = 'Bordeaux'
         }.to raise_error(WorkingHours::InvalidConfiguration, "Unknown time zone: Bordeaux")
+      end
+
+      it 'raises an error when precompiling if timezone is invalid after assignment' do
+        WorkingHours::Config.time_zone = 'Paris'
+        WorkingHours::Config.holidays << ' NotACity'
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid holiday:  NotACity - must be Date')
       end
     end
   end
