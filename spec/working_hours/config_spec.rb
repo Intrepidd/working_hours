@@ -86,8 +86,14 @@ describe WorkingHours::Config do
         }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 8:0 - must be 'HH:MM'")
 
         expect {
-          WorkingHours::Config.working_hours = {:mon => {'08:00' => '24:00'}}
-        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 24:00 - must be 'HH:MM'")
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '21:90'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 21:90 - must be 'HH:MM'")
+      end
+
+      it 'rejects invalid timestamps' do
+        expect {
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '24:01'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 24:01 - must be a valid timestamp")
       end
 
       it 'rejects invalid range' do
