@@ -5,7 +5,7 @@ module WorkingHours
 
   class Config
 
-    TIME_FORMAT = /\A([0-1][0-9]|2[0-3]):([0-5][0-9])\z/
+    TIME_FORMAT = /\A(\d{2}):([0-5][0-9])\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
 
     class << self
@@ -111,6 +111,8 @@ module WorkingHours
               raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM'"
             elsif not finish =~ TIME_FORMAT
               raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM'"
+            elsif compile_time(finish) > 24 * 60 * 60
+              raise InvalidConfiguration.new "Invalid time: #{finish} - must be a valid timestamp"
             elsif start >= finish
               raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - ends before it starts"
             elsif last_time and start < last_time
