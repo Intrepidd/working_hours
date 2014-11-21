@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'rspec-api-matchers'
 
 describe WorkingHours::Config do
 
@@ -8,6 +9,26 @@ describe WorkingHours::Config do
 
     it 'has a default config' do
       expect(config).to be_kind_of(Hash)
+    end
+
+    it 'sorts the config hash' do
+      include RSpecApi::Matchers::Sort
+      not_sorted_hash = {
+        :tue => {'13:00' => '17:00', '09:00' => '12:00'},
+        :wed => {'09:00' => '12:00', '13:00' => '17:00'},
+        :thu => {'09:00' => '12:00', '13:00' => '17:00'},
+        :fri => {'13:00' => '17:00', '09:00' => '12:00'},
+        :sat => {'10:00' => '15:00'}
+      }
+      sorted_hash = {
+        :tue => {'09:00' => '12:00', '13:00' => '17:00'},
+        :wed => {'09:00' => '12:00', '13:00' => '17:00'},
+        :thu => {'09:00' => '12:00', '13:00' => '17:00'},
+        :fri => {'09:00' => '12:00', '13:00' => '17:00'},
+        :sat => {'10:00' => '15:00'}
+      }
+      WorkingHours::Config.working_hours = not_sorted_hash
+      expect(sorted_hash).to eql WorkingHours::Config.working_hours
     end
 
     it 'is thread safe' do
