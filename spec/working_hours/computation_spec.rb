@@ -98,6 +98,11 @@ describe WorkingHours::Computation do
       add_seconds(time, 120)
     end
 
+    it 'supports midnight' do
+      WorkingHours::Config.working_hours = {:mon => {'00:00' => '24:00'}}
+      time = Time.utc(2014, 4, 7, 23, 59, 30) # Friday
+      expect(add_seconds(time, 60)).to eq(Time.utc(2014, 4, 14, 0, 0, 30))
+    end
   end
 
   describe '#advance_to_working_time' do
@@ -308,6 +313,14 @@ describe WorkingHours::Computation do
         Time.utc(2014, 4, 7, 7),
         Time.utc(2014, 4, 7, 20)
       )).to eq(8.hours)
+    end
+
+    it 'supports midnight' do
+      WorkingHours::Config.working_hours = {:mon => {'00:00' => '24:00'}}
+      expect(working_time_between(
+        Time.utc(2014, 4, 6, 12),
+        Time.utc(2016, 4, 6, 12)
+      )).to eq(24.hours * 105) # 105 complete mondays in 2 years
     end
 
     it 'handles multiple timespans' do

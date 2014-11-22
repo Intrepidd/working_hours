@@ -83,11 +83,11 @@ describe WorkingHours::Config do
       it 'rejects invalid time format' do
         expect {
           WorkingHours::Config.working_hours = {:mon => {'8:0' => '12:00'}}
-        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 8:0 - must be 'HH:MM'")
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 8:0 - must be 'HH:MM(:SS)'")
 
         expect {
-          WorkingHours::Config.working_hours = {:mon => {'08:00' => '24:00'}}
-        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 24:00 - must be 'HH:MM'")
+          WorkingHours::Config.working_hours = {:mon => {'08:00' => '24:10'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 24:10 - outside of day")
       end
 
       it 'rejects invalid range' do
@@ -190,6 +190,24 @@ describe WorkingHours::Config do
           :holidays => Set.new([]),
           :time_zone => ActiveSupport::TimeZone['UTC']
         })
+    end
+
+    it 'supports seconds' do
+      WorkingHours::Config.working_hours = {:mon => {'20:32:59' => '22:59:59'}}
+      expect(subject).to eq({
+        :working_hours => [nil, {73979 => 82799}],
+        :holidays => Set.new([]),
+        :time_zone => ActiveSupport::TimeZone['UTC']
+      })
+    end
+
+    it 'supports 24:00 (converts to 23:59:59.999999)' do
+      WorkingHours::Config.working_hours = {:mon => {'20:00' => '24:00'}}
+      expect(subject).to eq({
+        :working_hours => [nil, {72000 => 86399.999999}],
+        :holidays => Set.new([]),
+        :time_zone => ActiveSupport::TimeZone['UTC']
+      })
     end
 
     it 'changes if working_hours changes' do
