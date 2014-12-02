@@ -133,7 +133,7 @@ require 'working_hours/module'
 class Order
   include WorkingHours
 
-  def shipping_date_estibmate
+  def shipping_date_estimate
     Duration.new(2, :days).since(payment_received_at)
   end
 
