@@ -69,13 +69,13 @@ module WorkingHours
         Thread.current[:working_hours] = default_config
       end
 
-      def with_config(working_hours, holidays, time_zone)
+      def with_config(working_hours: nil, holidays: nil, time_zone: nil)
         original_working_hours = self.working_hours
         original_holidays = self.holidays
         original_time_zone = self.time_zone
-        self.working_hours = working_hours
-        self.holidays = holidays
-        self.time_zone = time_zone
+        self.working_hours = working_hours if working_hours
+        self.holidays = holidays if holidays
+        self.time_zone = time_zone if time_zone
         yield
       ensure
         self.working_hours = original_working_hours
