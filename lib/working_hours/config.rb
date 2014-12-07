@@ -5,7 +5,7 @@ module WorkingHours
 
   class Config
 
-    TIME_FORMAT = /\A([0-1][0-9]|2[0-3]):([0-5][0-9])\z/
+    TIME_FORMAT = /\A([0-2][0-9])\:([0-5][0-9])(?:\:([0-5][0-9]))?\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
 
     class << self
@@ -106,7 +106,11 @@ module WorkingHours
       def compile_time time
         hour = time[TIME_FORMAT,1].to_i
         min = time[TIME_FORMAT,2].to_i
-        hour * 3600 + min * 60
+        sec = time[TIME_FORMAT,3].to_i
+        time = hour * 3600 + min * 60 + sec
+        # Converts 24:00 to 23:59:59.999999
+        return 86399.999999 if time == 86400
+        time
       end
 
       def validate_working_hours! week
@@ -125,9 +129,11 @@ module WorkingHours
           last_time = nil
           hours.sort.each do |start, finish|
             if not start =~ TIME_FORMAT
-              raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM'"
+              raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM(:SS)'"
             elsif not finish =~ TIME_FORMAT
-              raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM'"
+              raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM(:SS)'"
+            elsif compile_time(finish) >= 24 * 60 * 60
+              raise InvalidConfiguration.new "Invalid time: #{finish} - outside of day"
             elsif start >= finish
               raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - ends before it starts"
             elsif last_time and start < last_time

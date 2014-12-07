@@ -71,8 +71,8 @@ WorkingHours::Config.working_hours = {
   :tue => {'09:00' => '12:00', '13:00' => '17:00'},
   :wed => {'09:00' => '12:00', '13:00' => '17:00'},
   :thu => {'09:00' => '12:00', '13:00' => '17:00'},
-  :fri => {'09:00' => '12:00', '13:00' => '17:00'},
-  :sat => {'10:00' => '15:00'}
+  :fri => {'09:00' => '12:00', '13:00' => '17:05:30'},
+  :sat => {'19:00' => '24:00'}
 }
 
 # Configure timezone (uses activesupport, defaults to UTC)
@@ -133,7 +133,7 @@ require 'working_hours/module'
 class Order
   include WorkingHours
 
-  def shipping_date_estibmate
+  def shipping_date_estimate
     Duration.new(2, :days).since(payment_received_at)
   end
 

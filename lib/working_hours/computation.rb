@@ -39,7 +39,7 @@ module WorkingHours
         config[:working_hours][time.wday].each do |from, to|
           if time_in_day >= from and time_in_day < to
             # take all we can
-            take = [to - time_in_day, seconds].min
+            take = [to - time_in_day, seconds].min.round
             # advance time
             time += take
             # decrease seconds
@@ -55,7 +55,7 @@ module WorkingHours
         config[:working_hours][time.wday].reverse_each do |from, to|
           if time_in_day > from and time_in_day <= to
             # take all we can
-            take = [time_in_day - from, -seconds].min
+            take = [time_in_day - from, -seconds].min.round
             # advance time
             time -= take
             # decrease seconds
@@ -162,7 +162,7 @@ module WorkingHours
           # roll to next business period
           from = advance_to_working_time(from, config: config)
         end
-        distance
+        distance.round # round up to supress miliseconds introduced by 24:00 hack
       end
     end
 
