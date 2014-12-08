@@ -32,41 +32,19 @@ module WorkingHours
       config ||= wh_config
       time = in_config_zone(origin, config: config).round
       while seconds > 0
-        # roll to next business period
-        time = advance_to_working_time(time, config: config)
-        # look at working ranges
-        time_in_day = time.seconds_since_midnight
-        config[:working_hours][time.wday].each do |from, to|
-          if time_in_day >= from and time_in_day < to
-            # take all we can
-            take = [to - time_in_day, seconds].min.round
-            # advance time
-            time += take
-            # decrease seconds
-            seconds -= take
-          end
-        end
+
+		  seconds, time = roll_to_next_period(config, seconds, time)
       end
       while seconds < 0
-        # roll to previous business period
-        time = return_to_working_time(time, config: config)
-        # look at working ranges
-        time_in_day = time.seconds_since_midnight
-        config[:working_hours][time.wday].reverse_each do |from, to|
-          if time_in_day > from and time_in_day <= to
-            # take all we can
-            take = [time_in_day - from, -seconds].min.round
-            # advance time
-            time -= take
-            # decrease seconds
-            seconds += take
-          end
-        end
+
+		  seconds, time = roll_to_previous_period(config, seconds, time)
       end
       convert_to_original_format time, origin
     end
 
-    def advance_to_working_time time, config: nil
+
+
+	def advance_to_working_time time, config: nil
       config ||= wh_config
       time = in_config_zone(time, config: config).round
       loop do
@@ -189,7 +167,41 @@ module WorkingHours
       when DateTime then time.to_datetime
       else time
       end
-    end
+	end
+
+	def roll_to_previous_period(config, seconds, time)
+		time = return_to_working_time(time, config: config)
+		# look at working ranges
+		time_in_day = time.seconds_since_midnight
+		config[:working_hours][time.wday].reverse_each do |from, to|
+			if time_in_day > from and time_in_day <= to
+				# take all we can
+				take = [time_in_day - from, -seconds].min.round
+				# advance time
+				time -= take
+				# decrease seconds
+				seconds += take
+			end
+		end
+		return seconds, time
+	end
+
+	def roll_to_next_period(config, seconds, time)
+		time = advance_to_working_time(time, config: config)
+		# look at working ranges
+		time_in_day = time.seconds_since_midnight
+		config[:working_hours][time.wday].each do |from, to|
+			if time_in_day >= from and time_in_day < to
+				# take all we can
+				take = [to - time_in_day, seconds].min.round
+				# advance time
+				time += take
+				# decrease seconds
+				seconds -= take
+			end
+		end
+		return seconds, time
+	end
 
   end
 end
