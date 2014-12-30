@@ -82,6 +82,19 @@ WorkingHours::Config.time_zone = 'Paris'
 WorkingHours::Config.holidays = [Date.new(2014, 12, 31)]
 ```
 
+Alternatively, you can apply a particular config in a block with the ``with_config`` method :
+
+```ruby
+WorkingHours::Config.with_config(working_hours: {mon:{'09:00' => '18:00'}}, holidays: [], time_zone: 'Paris') do
+  # Intense calculations
+end
+```
+``with_config`` uses keyword arguments, you can pass all or some of the supported arguments :
+- ``working_hours``
+- ``holidays``
+- ``time_zone``
+
+
 ## No core extensions / monkey patching
 
 Core extensions (monkey patching to add methods on Time, Date, Numbers, etc.) are handy but not appreciated by everyone. WorkingHours can also be used **without any monkey patching**:

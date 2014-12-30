@@ -107,6 +107,15 @@ describe WorkingHours::Config do
           WorkingHours::Config.working_hours = {:mon => {'10:00' => '11:00', '08:00' => '09:00'}}
         }.not_to raise_error
       end
+
+      it 'raises an error when precompiling if working hours are invalid after assignment' do
+        WorkingHours::Config.working_hours = {:mon => {'10:00' => '11:00', '08:00' => '09:00'}}
+        WorkingHours::Config.working_hours[:mon] = 'Not correct'
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid type for `mon`: String - must be Hash')
+      end
+
     end
   end
 
@@ -140,6 +149,15 @@ describe WorkingHours::Config do
           WorkingHours::Config.holidays = [Date.today, 42]
         }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid holiday: 42 - must be Date")
       end
+
+      it 'raises an error when precompiling if holidays are invalid after assignment' do
+        WorkingHours::Config.holidays = [Date.today]
+        WorkingHours::Config.holidays << 42
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid holiday: 42 - must be Date')
+      end
+
     end
   end
 
@@ -177,6 +195,14 @@ describe WorkingHours::Config do
         expect {
           WorkingHours::Config.time_zone = 'Bordeaux'
         }.to raise_error(WorkingHours::InvalidConfiguration, "Unknown time zone: Bordeaux")
+      end
+
+      it 'raises an error when precompiling if timezone is invalid after assignment' do
+        WorkingHours::Config.time_zone = 'Paris'
+        WorkingHours::Config.holidays << ' NotACity'
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid holiday:  NotACity - must be Date')
       end
     end
   end
@@ -252,5 +278,58 @@ describe WorkingHours::Config do
       3.times { WorkingHours::Config.precompiled }
       expect(WorkingHours::Config.precompiled).to be(precompiled)
     end
+  end
+
+  describe '.with_config' do
+
+    let(:working_hours) { { mon: {'08:00' => '19:00'} } }
+    let(:holidays) { [Date.new(2014, 11, 15)]}
+    let(:time_zone) { ActiveSupport::TimeZone.new('Paris') }
+
+    it 'sets the corresponding config inside the block' do
+      WorkingHours::Config.with_config(working_hours: working_hours, holidays: holidays, time_zone: time_zone) do
+        expect(WorkingHours::Config.working_hours).to eq(working_hours)
+        expect(WorkingHours::Config.holidays).to eq(holidays)
+        expect(WorkingHours::Config.time_zone).to eq(time_zone)
+      end
+    end
+
+    it 'resets to old config after the block' do
+      WorkingHours::Config.working_hours = {tue: {'09:00' => '16:00'} }
+      WorkingHours::Config.holidays = [Date.new(2014, 01, 01)]
+      WorkingHours::Config.time_zone = ActiveSupport::TimeZone.new('Tokyo')
+      WorkingHours::Config.with_config(working_hours: working_hours, holidays: holidays, time_zone: time_zone) {}
+      expect(WorkingHours::Config.working_hours).to eq({tue: {'09:00' => '16:00'} })
+      expect(WorkingHours::Config.holidays).to eq([Date.new(2014, 01, 01)])
+      expect(WorkingHours::Config.time_zone).to eq(ActiveSupport::TimeZone.new('Tokyo'))
+    end
+
+    it 'resets to old config after the block even if things go bad' do
+      WorkingHours::Config.working_hours = {tue: {'09:00' => '16:00'} }
+      WorkingHours::Config.holidays = [Date.new(2014, 01, 01)]
+      WorkingHours::Config.time_zone = ActiveSupport::TimeZone.new('Tokyo')
+      begin
+        WorkingHours::Config.with_config(working_hours: working_hours, holidays: holidays, time_zone: time_zone) do
+          raise
+        end
+      rescue
+      end
+      expect(WorkingHours::Config.working_hours).to eq({tue: {'09:00' => '16:00'} })
+      expect(WorkingHours::Config.holidays).to eq([Date.new(2014, 01, 01)])
+      expect(WorkingHours::Config.time_zone).to eq(ActiveSupport::TimeZone.new('Tokyo'))
+    end
+
+    it 'raises if working_hours are invalid' do
+      expect { WorkingHours::Config.with_config(working_hours: {}) {}}.to raise_error(WorkingHours::InvalidConfiguration)
+    end
+
+    it 'raises if holidays are invalid' do
+      expect { WorkingHours::Config.with_config(holidays: [1]) {}}.to raise_error(WorkingHours::InvalidConfiguration)
+    end
+
+    it 'raises if timezone is invalid' do
+      expect { WorkingHours::Config.with_config(time_zone: '67P Comet') {}}.to raise_error(WorkingHours::InvalidConfiguration)
+    end
+
   end
 end

@@ -39,6 +39,9 @@ module WorkingHours
         end
 
         config[:precompiled] ||= begin
+          validate_working_hours! config[:working_hours]
+          validate_holidays! config[:holidays]
+          validate_time_zone! config[:time_zone]
           compiled = {working_hours: []}
           working_hours.each do |day, hours|
             compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}
@@ -64,6 +67,20 @@ module WorkingHours
 
       def reset!
         Thread.current[:working_hours] = default_config
+      end
+
+      def with_config(working_hours: nil, holidays: nil, time_zone: nil)
+        original_working_hours = self.working_hours
+        original_holidays = self.holidays
+        original_time_zone = self.time_zone
+        self.working_hours = working_hours if working_hours
+        self.holidays = holidays if holidays
+        self.time_zone = time_zone if time_zone
+        yield
+      ensure
+        self.working_hours = original_working_hours
+        self.holidays = original_holidays
+        self.time_zone = original_time_zone
       end
 
       private
