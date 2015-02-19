@@ -12,3 +12,4 @@ gemfile:
 matrix:
   allow_failures:
     - gemfile: gemfiles/Gemfile.activesupport-edge
+    - language: ruby-head
