@@ -164,6 +164,8 @@ This gem uses a simple but efficient approach in dealing with timezones. When yo
 
 There is a gem called [business_time](https://github.com/bokmann/business_time) already available to do this kind of computation and it was of great help to us. But we decided to start another one because business_time is suffering from a few [bugs](https://github.com/bokmann/business_time/pull/84) and [inconsistencies](https://github.com/bokmann/business_time/issues/50). It also lacks essential features to us (like working minutes computation).
 
+Another gem called [biz](https://github.com/zendesk/biz) was released after working_hours to bring some alternative.
+
 ## Contributing
 
 1. Fork it ( http://github.com/intrepidd/working_hours/fork )
