@@ -2,6 +2,9 @@
 
 [Compare master with v1.0.3](https://github.com/intrepidd/working_hours/compare/v1.0.3...master)
 
+# v1.0.4
+* Fixed a nasty stack level too deep error on DateTime#+ and DateTime#- (thanks @jlanatta)
+
 # v1.0.3
 
 * Relax configuration input formats - [#10](https://github.com/Intrepidd/working_hours/pull/10)
