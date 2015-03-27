@@ -53,10 +53,6 @@ class Date
   include WorkingHours::CoreExt::DateAndTime
 end
 
-class DateTime
-  include WorkingHours::CoreExt::DateAndTime
-end
-
 class Time
   include WorkingHours::CoreExt::DateAndTime
 end

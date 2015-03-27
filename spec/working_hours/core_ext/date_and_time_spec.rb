@@ -28,10 +28,29 @@ describe WorkingHours::CoreExt::DateAndTime do
       time + duration
     end
 
-    it "doesn't break original operator" do
+    it "doesn't break original Time operator" do
       time = Time.now
       expect(WorkingHours).not_to receive(:add_days)
       expect(time + 3600).to eq(time + 1.hour)
+    end
+
+    it "doesn't break original Date operator" do
+      date = Date.today
+      expect(WorkingHours).not_to receive(:add_days)
+      expect(date + 1).to eq(date + 1.day)
+    end
+
+    it "doesn't break original DateTime operator" do
+      datetime = DateTime.now
+      expect(WorkingHours).not_to receive(:add_days)
+      expect(datetime + 1).to eq(datetime + 1.day)
+    end
+
+    it "doesn't break original TimeWithZone operator" do
+      Time.zone = 'UTC'
+      time = Time.zone.now
+      expect(WorkingHours).not_to receive(:add_days)
+      expect(time + 1).to eq(time + 1.second)
     end
   end
 
@@ -60,10 +79,29 @@ describe WorkingHours::CoreExt::DateAndTime do
       time - duration
     end
 
-    it "doesn't break original operator" do
+    it "doesn't break original Time operator" do
       time = Time.now
       expect(WorkingHours).not_to receive(:add_days)
       expect(time - 3600).to eq(time - 1.hour)
+    end
+
+    it "doesn't break original Date operator" do
+      date = Date.today
+      expect(WorkingHours).not_to receive(:add_days)
+      expect(date - 1).to eq(date - 1.day)
+    end
+
+    it "doesn't break original DateTime operator" do
+      datetime = DateTime.now
+      expect(WorkingHours).not_to receive(:add_days)
+      expect(datetime - 1).to eq(datetime - 1.day)
+    end
+
+    it "doesn't break original TimeWithZone operator" do
+      Time.zone = 'UTC'
+      time = Time.zone.now
+      expect(WorkingHours).not_to receive(:add_days)
+      expect(time - 1).to eq(time - 1.second)
     end
   end
 
