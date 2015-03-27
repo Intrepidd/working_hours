@@ -41,7 +41,7 @@ describe WorkingHours::CoreExt::DateAndTime do
     end
 
     it "doesn't break original DateTime operator" do
-      datetime = DateTime.now
+      datetime = DateTime.now.change(usec: 0)
       expect(WorkingHours).not_to receive(:add_days)
       expect(datetime + 1).to eq(datetime + 1.day)
     end
@@ -92,7 +92,7 @@ describe WorkingHours::CoreExt::DateAndTime do
     end
 
     it "doesn't break original DateTime operator" do
-      datetime = DateTime.now
+      datetime = DateTime.now.change(usec: 0)
       expect(WorkingHours).not_to receive(:add_days)
       expect(datetime - 1).to eq(datetime - 1.day)
     end
