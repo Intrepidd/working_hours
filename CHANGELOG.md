@@ -1,9 +1,11 @@
 # Unreleased
 
-[Compare master with v1.0.3](https://github.com/intrepidd/working_hours/compare/v1.0.3...master)
+[Compare master with v1.0.4](https://github.com/intrepidd/working_hours/compare/v1.0.4...master)
 
 # v1.0.4
 * Fixed a nasty stack level too deep error on DateTime#+ and DateTime#- (thanks @jlanatta)
+
+_27/03/2015_
 
 # v1.0.3
 
