@@ -26,6 +26,13 @@ describe WorkingHours::Config do
       }.not_to change { WorkingHours::Config.working_hours }
     end
 
+    it 'is initialized from last known global config' do
+      WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
+      Thread.new {
+        expect(WorkingHours::Config.working_hours).to match :mon => {'08:00' => '14:00'}
+      }.join
+    end
+
     it 'should have a key for each week day' do
       [:mon, :tue, :wed, :thu, :fri].each do |d|
         expect(config[d]).to be_kind_of(Hash)
@@ -137,6 +144,13 @@ describe WorkingHours::Config do
       }.to change { WorkingHours::Config.precompiled[:holidays] }.by(Set.new([Date.today]))
     end
 
+    it 'is initialized from last known global config' do
+      WorkingHours::Config.holidays = [Date.today]
+      Thread.new {
+        expect(WorkingHours::Config.holidays).to eq [Date.today]
+      }.join
+    end
+
     describe 'validation' do
       it 'rejects types that cannot be converted into an array' do
         expect {
@@ -176,6 +190,13 @@ describe WorkingHours::Config do
     it 'should accept a TimeZone' do
       WorkingHours::Config.time_zone = ActiveSupport::TimeZone['Tokyo']
       expect(config).to eq(ActiveSupport::TimeZone['Tokyo'])
+    end
+
+    it 'is initialized from last known global config' do
+      WorkingHours::Config.time_zone = ActiveSupport::TimeZone['Tokyo']
+      Thread.new {
+        expect(WorkingHours::Config.time_zone).to eq ActiveSupport::TimeZone['Tokyo']
+      }.join
     end
 
     it "recomputes precompiled when modified" do

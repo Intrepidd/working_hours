@@ -17,6 +17,7 @@ module WorkingHours
       def working_hours=(val)
         validate_working_hours! val
         config[:working_hours] = val
+        global_config[:working_hours] = val
         config.delete :precompiled
       end
 
@@ -27,6 +28,7 @@ module WorkingHours
       def holidays=(val)
         validate_holidays! val
         config[:holidays] = val
+        global_config[:holidays] = val
         config.delete :precompiled
       end
 
@@ -62,6 +64,7 @@ module WorkingHours
       def time_zone=(val)
         zone = validate_time_zone! val
         config[:time_zone] = zone
+        global_config[:time_zone] = val
         config.delete :precompiled
       end
 
@@ -86,7 +89,11 @@ module WorkingHours
       private
 
       def config
-        Thread.current[:working_hours] ||= default_config
+        Thread.current[:working_hours] ||= global_config
+      end
+
+      def global_config
+        @@global_config ||= default_config
       end
 
       def default_config

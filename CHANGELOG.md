@@ -1,6 +1,11 @@
 # Unreleased
 
-[Compare master with v1.0.4](https://github.com/intrepidd/working_hours/compare/v1.0.4...master)
+[Compare master with v1.1.0](https://github.com/intrepidd/working_hours/compare/v1.1.0...master)
+
+# v1.1.0
+* Config set globally is now properly inherited in new threads. This fixes the issue when setting the config once in an initializer won't work in threaded web servers.
+
+_03/04/2015_
 
 # v1.0.4
 * Fixed a nasty stack level too deep error on DateTime#+ and DateTime#- (thanks @jlanatta)

@@ -63,7 +63,7 @@ WorkingHours.return_to_working_time(Time.utc(2014, 8, 4, 7, 16)) # => Fri, 01 Au
 
 ## Configuration
 
-The working hours configuration is thread local and consists of a hash defining working periods for each day, a time zone and a list of days off.
+The working hours configuration is thread safe and consists of a hash defining working periods for each day, a time zone and a list of days off. You can set it once, for example in a initializer for rails:
 
 ```ruby
 # Configure working hours
@@ -82,7 +82,7 @@ WorkingHours::Config.time_zone = 'Paris'
 WorkingHours::Config.holidays = [Date.new(2014, 12, 31)]
 ```
 
-Alternatively, you can apply a particular config in a block with the ``with_config`` method :
+Or you can set it for the duration of a block with the `with_config` method, this is particularly useful with `around_filter`:
 
 ```ruby
 WorkingHours::Config.with_config(working_hours: {mon:{'09:00' => '18:00'}}, holidays: [], time_zone: 'Paris') do
