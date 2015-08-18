@@ -49,7 +49,7 @@ module WorkingHours
       end
       while seconds < 0
         # roll to previous business period
-        time = return_to_working_time(time, config: config)
+        time = return_to_exact_working_time(time, config: config)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
         config[:working_hours][time.wday].reverse_each do |from, to|
@@ -63,7 +63,7 @@ module WorkingHours
           end
         end
       end
-      convert_to_original_format time, origin
+      convert_to_original_format(time.round, origin)
     end
 
     def advance_to_working_time time, config: nil
@@ -85,7 +85,14 @@ module WorkingHours
       end
     end
 
-    def return_to_working_time time, config: nil
+    def return_to_working_time(time, config: nil)
+      # return_to_exact_working_time may return values with a high number of milliseconds,
+      # this is necessary for the end of day hack, here we return a rounded value for the
+      # public API
+      return_to_exact_working_time(time, config: config).round
+    end
+
+    def return_to_exact_working_time time, config: nil
       config ||= wh_config
       time = in_config_zone(time, config: config).round
       loop do
@@ -97,8 +104,8 @@ module WorkingHours
         time_in_day = time.seconds_since_midnight
         (config[:working_hours][time.wday] || {}).reverse_each do |from, to|
           # round is used to suppress miliseconds hack from `end_of_day`
-          return time.round if time_in_day > from and time_in_day <= to
-          return (time - (time_in_day - to)).round if to <= time_in_day
+          return time if time_in_day > from and time_in_day <= to
+          return (time - (time_in_day - to)) if to <= time_in_day
         end
         # if none is found, go to previous day and loop
         time = (time - 1.day).end_of_day

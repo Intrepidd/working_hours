@@ -98,10 +98,16 @@ describe WorkingHours::Computation do
       add_seconds(time, 120)
     end
 
-    it 'supports midnight' do
+    it 'supports midnight when advancing time' do
       WorkingHours::Config.working_hours = {:mon => {'00:00' => '24:00'}}
-      time = Time.utc(2014, 4, 7, 23, 59, 30) # Friday
+      time = Time.utc(2014, 4, 7, 23, 59, 30) # Monday
       expect(add_seconds(time, 60)).to eq(Time.utc(2014, 4, 14, 0, 0, 30))
+    end
+
+    it 'supports midnight when rewinding time' do
+      WorkingHours::Config.working_hours = {:mon => {'00:00' => '24:00'}, :tue => {'08:00' => '18:00'}}
+      time = Time.utc(2014, 4, 8, 0, 0, 30) # Tuesday
+      expect(add_seconds(time, -60)).to eq(Time.utc(2014, 4, 7, 23, 59, 00))
     end
   end
 
