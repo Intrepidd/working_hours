@@ -148,6 +148,78 @@ describe WorkingHours::Computation do
     end
   end
 
+  describe '#advance_to_closing_time' do
+
+    it 'jumps non-working day' do
+      WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
+      holiday = Time.utc(2014, 5, 1, 12, 0)
+      friday_closing = Time.utc(2014, 5, 2, 17, 0)
+      sunday = Time.utc(2014, 6, 1, 12, 0)
+      monday_closing = Time.utc(2014, 6, 2, 17, 0)
+      expect(advance_to_closing_time(holiday)).to eq(friday_closing)
+      expect(advance_to_closing_time(sunday)).to eq(monday_closing)
+    end
+
+    it 'moves to the closing time during working hours' do
+      in_open_time = Time.utc(2014, 4, 7, 12, 0)
+      closing_time = Time.utc(2014, 4, 7, 17, 0)
+      expect(advance_to_closing_time(in_open_time)).to eq(closing_time)
+    end
+
+    it 'jumps outside working hours' do
+      monday_before_opening = Time.utc(2014, 4, 7, 8, 59)
+      monday_closing = Time.utc(2014, 4, 7, 17, 0)
+      tuesday_closing = Time.utc(2014, 4, 8, 17, 0)
+      expect(advance_to_closing_time(monday_before_opening)).to eq(monday_closing)
+      expect(advance_to_closing_time(monday_closing)).to eq(tuesday_closing)
+    end
+
+    context 'move between timespans' do
+      before do
+        WorkingHours::Config.working_hours = {
+          mon: {'07:00' => '12:00', '13:00' => '18:00'},
+          tue: {'09:00' => '17:00'},
+          wed: {'09:00' => '17:00'},
+          thu: {'09:00' => '17:00'},
+          fri: {'09:00' => '17:00'}
+        }
+      end
+
+      let(:monday_morning) { Time.utc(2014, 4, 7, 10) }
+      let(:morning_closing) { Time.utc(2014, 4, 7, 12) }
+      let(:afternoon_closing) { Time.utc(2014, 4, 7, 18) }
+      let(:monday_break) { Time.utc(2014, 4, 7, 12) }
+      let(:tuesday_closing) { Time.utc(2014, 4, 8, 17) }
+
+      it 'moves from morning to end of morning slot' do
+        expect(advance_to_closing_time(monday_morning)).to eq(morning_closing)
+      end
+
+      it 'moves from break time to end of afternoon slot' do
+        expect(advance_to_closing_time(monday_break)).to eq(afternoon_closing)
+      end
+
+      it 'moves from afternoon closing slot to next day' do
+        expect(advance_to_closing_time(afternoon_closing)).to eq(tuesday_closing)
+      end
+    end
+
+    it 'works with any input timezone (converts to config)' do
+      # Monday 0 am (-09:00) is 9am in UTC time, working time!
+      monday_morning = Time.new(2014, 4, 7, 0, 0, 0 , "-09:00")
+      monday_closing = Time.new(2014, 4, 7, 12, 0, 0 , "-05:00")
+      monday_night = Time.new(2014, 4, 7, 22, 0, 0, "+02:00")
+      tuesday_evening = Time.utc(2014, 4, 8, 17)
+      expect(advance_to_closing_time(monday_morning)).to eq(monday_closing)
+      expect(advance_to_closing_time(monday_night)).to eq(tuesday_evening)
+    end
+
+    it 'returns time in config zone' do
+      WorkingHours::Config.time_zone = 'Tokyo'
+      expect(advance_to_closing_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
+    end
+  end
+
   describe '#return_to_working_time' do
     it 'jumps non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
