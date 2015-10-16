@@ -57,6 +57,11 @@ Time.utc(2014, 8, 4, 7, 16).in_working_hours? # => false
 # Advance to next working time
 WorkingHours.advance_to_working_time(Time.utc(2014, 8, 4, 7, 16)) # => Mon, 04 Aug 2014 09:00:00 UTC +00:00
 
+# Advance to next closing time
+WorkingHours.advance_to_closing_time(Time.utc(2014, 8, 4, 7, 16)) # => Mon, 04 Aug 2014 17:00:00 UTC +00:00
+WorkingHours.advance_to_closing_time(Time.utc(2014, 8, 4, 10, 16)) # => Mon, 04 Aug 2014 17:00:00 UTC +00:00
+WorkingHours.advance_to_closing_time(Time.utc(2014, 8, 4, 18, 16)) # => Tue, 05 Aug 2014 17:00:00 UTC +00:00
+
 # Return to previous working time
 WorkingHours.return_to_working_time(Time.utc(2014, 8, 4, 7, 16)) # => Fri, 01 Aug 2014 17:00:00 UTC +00:00
 ```
