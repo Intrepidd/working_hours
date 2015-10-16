@@ -85,6 +85,32 @@ module WorkingHours
       end
     end
 
+    def next_working_time time, config: nil
+      config ||= wh_config
+      time = in_config_zone(time, config: config).round
+      loop do
+        # skip holidays and weekends
+        while not working_day?(time, config: config)
+          time = (time + 1.day).beginning_of_day
+        end
+        # find next working range after time
+        time_in_day = time.seconds_since_midnight
+        time = time.beginning_of_day
+        (config[:working_hours][time.wday] || {}).each do |from, to|
+          # skip this slot if it's the first
+          if time_in_day >= from and time_in_day < to
+            time_in_day = to
+            next
+          end
+
+          return time + from if time_in_day >= from and time_in_day < to
+          return time + from if from >= time_in_day
+        end
+        # if none is found, go to next day and loop
+        time = time + 1.day
+      end
+    end
+
     def return_to_working_time(time, config: nil)
       # return_to_exact_working_time may return values with a high number of milliseconds,
       # this is necessary for the end of day hack, here we return a rounded value for the
