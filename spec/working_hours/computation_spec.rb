@@ -174,7 +174,7 @@ describe WorkingHours::Computation do
       expect(advance_to_closing_time(monday_closing)).to eq(tuesday_closing)
     end
 
-    context 'move between timespans' do
+    context 'moving between timespans' do
       before do
         WorkingHours::Config.working_hours = {
           mon: {'07:00' => '12:00', '13:00' => '18:00'},
@@ -201,6 +201,32 @@ describe WorkingHours::Computation do
 
       it 'moves from afternoon closing slot to next day' do
         expect(advance_to_closing_time(afternoon_closing)).to eq(tuesday_closing)
+      end
+    end
+
+    context 'supporting midnight' do
+      before do
+        WorkingHours::Config.working_hours = {
+          mon: {'00:00' => '24:00'},
+          tue: {'09:00' => '17:00'}
+        }
+      end
+
+      let(:monday_morning) { Time.utc(2014, 4, 7, 0) }
+      let(:monday_closing) { Time.utc(2014, 4, 7) + 86399.999999 }
+      let(:tuesday_closing) { Time.utc(2014, 4, 8, 17) }
+      let(:sunday) { Time.utc(2014, 4, 6, 17) }
+
+      it 'moves from morning to midnight' do
+        expect(advance_to_closing_time(monday_morning)).to eq(monday_closing)
+      end
+
+      it 'moves from midnight to end of next slot' do
+        expect(advance_to_closing_time(monday_closing)).to eq(tuesday_closing)
+      end
+
+      it 'moves over midnight' do
+        expect(advance_to_closing_time(sunday)).to eq(monday_closing)
       end
     end
 
