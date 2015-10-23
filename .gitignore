@@ -3,6 +3,8 @@
 .bundle
 .config
 .yardoc
+.ruby-gemset
+.ruby-version
 Gemfile.lock
 InstalledFiles
 _yardoc
