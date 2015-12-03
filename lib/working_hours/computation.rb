@@ -29,6 +29,8 @@ module WorkingHours
     end
 
     def add_seconds origin, seconds, config: nil
+      seconds = seconds.round
+
       config ||= wh_config
       time = in_config_zone(origin, config: config).round
       while seconds > 0
