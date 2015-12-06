@@ -1,6 +1,12 @@
 # Unreleased
 
-[Compare master with v1.1.1](https://github.com/intrepidd/working_hours/compare/v1.1.1...master)
+[Compare master with v1.1.2](https://github.com/intrepidd/working_hours/compare/v1.1.2...master)
+
+# v1.1.2
+* Fixed an issue of float imprecision causing infinite loop - [#27](https://github.com/Intrepidd/working_hours/pull/27)
+* Added #next_working_time and #advance_to_closing_time - [#23](https://github.com/Intrepidd/working_hours/pull/23)
+
+_06/12/2015_
 
 # v1.1.1
 * Fix infinite loop happening when rewinding seconds and crossing through midgnight
