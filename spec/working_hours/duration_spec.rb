@@ -62,6 +62,10 @@ describe WorkingHours::Duration do
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(7.working.days.from_now.zone).to eq('JST')
     end
+
+    it 'should not hang with fractional hours' do
+      WorkingHours::Duration.new(4.1, :hours).since(Time.utc(1991, 11, 15, 21))
+    end
   end
 
   describe '#until' do
