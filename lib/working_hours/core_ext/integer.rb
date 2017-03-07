@@ -12,4 +12,4 @@ module WorkingHours
   end
 end
 
-Fixnum.send(:include, WorkingHours::CoreExt::Fixnum)
+Integer.send(:include, WorkingHours::CoreExt::Integer)

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe WorkingHours::CoreExt::Fixnum do
+describe WorkingHours::CoreExt::Integer do
 
   describe '#working' do
     it 'returns a DurationProxy' do
