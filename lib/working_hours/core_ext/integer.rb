@@ -2,7 +2,7 @@ require "working_hours/duration_proxy"
 
 module WorkingHours
   module CoreExt
-    module Fixnum
+    module Integer
 
       def working
         WorkingHours::DurationProxy.new(self)
@@ -12,4 +12,4 @@ module WorkingHours
   end
 end
 
-Fixnum.send(:include, WorkingHours::CoreExt::Fixnum)
+Integer.send(:include, WorkingHours::CoreExt::Integer)
