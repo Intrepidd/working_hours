@@ -21,6 +21,7 @@ gemfile:
 matrix:
   exclude:
     - rvm: 2.4.0
+      env: JRUBY_OPTS=--2.0
       gemfile: gemfiles/Gemfile.activesupport-3.2.x
   allow_failures:
     - gemfile: gemfiles/Gemfile.activesupport-edge
