@@ -19,6 +19,9 @@ gemfile:
   - gemfiles/Gemfile.activesupport-4.2.x
   - gemfiles/Gemfile.activesupport-edge
 matrix:
+  exclude:
+    - rvm: 2.4.0
+      gemfile: gemfiles/Gemfile.activesupport-3.2.x
   allow_failures:
     - gemfile: gemfiles/Gemfile.activesupport-edge
     - rvm: ruby-head
