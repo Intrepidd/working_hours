@@ -1,6 +1,10 @@
 # Unreleased
 
-[Compare master with v1.1.2](https://github.com/intrepidd/working_hours/compare/v1.1.2...master)
+[Compare master with v1.1.3](https://github.com/intrepidd/working_hours/compare/v1.1.3...master)
+
+# v1.1.3
+* Fixed warnings with Ruby 2.4.0+ - [#32](https://github.com/Intrepidd/working_hours/pull/32)
+* Fix install bug with jruby 1.7.20
 
 # v1.1.2
 * Fixed an issue of float imprecision causing infinite loop - [#27](https://github.com/Intrepidd/working_hours/pull/27)
