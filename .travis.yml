@@ -12,11 +12,12 @@ before_install:
   - bundler --version || gem install bundler
 env: JRUBY_OPTS=--2.0
 gemfile:
-  - gemfiles/Gemfile.activesupport-3.2.x
   - gemfiles/Gemfile.activesupport-4.0.x
   - gemfiles/Gemfile.activesupport-4.1.x
   - gemfiles/Gemfile.activesupport-4.2.x
   - gemfiles/Gemfile.activesupport-5.0.x
+  - gemfiles/Gemfile.activesupport-5.1.x
+  - gemfiles/Gemfile.activesupport-5.2.x
   - gemfiles/Gemfile.activesupport-edge
 matrix:
   allow_failures:
