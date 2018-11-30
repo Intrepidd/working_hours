@@ -1,6 +1,9 @@
 # Unreleased
 
-[Compare master with v1.1.3](https://github.com/intrepidd/working_hours/compare/v1.1.3...master)
+[Compare master with v1.1.4](https://github.com/intrepidd/working_hours/compare/v1.1.4...master)
+
+# v1.1.4
+* Fix thread safety - [#36](https://github.com/Intrepidd/working_hours/pull/36)
 
 # v1.1.3
 * Fixed warnings with Ruby 2.4.0+ - [#32](https://github.com/Intrepidd/working_hours/pull/32)
