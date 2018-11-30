@@ -89,7 +89,7 @@ module WorkingHours
       private
 
       def config
-        Thread.current[:working_hours] ||= global_config
+        Thread.current[:working_hours] ||= global_config.dup
       end
 
       def global_config
