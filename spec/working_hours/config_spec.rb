@@ -5,25 +5,58 @@ describe WorkingHours::Config do
   describe '.working_hours' do
 
     let(:config) { WorkingHours::Config.working_hours }
+    let(:config2) { { :mon => { '08:00' => '14:00' } } }
+    let(:config3) { { :tue => { '10:00' => '16:00' } } }
 
     it 'has a default config' do
       expect(config).to be_kind_of(Hash)
     end
 
     it 'is thread safe' do
+      expect(WorkingHours::Config.working_hours).to eq(config)
+
+      thread = Thread.new do
+        WorkingHours::Config.working_hours = config2
+        expect(WorkingHours::Config.working_hours).to eq(config2)
+        Thread.stop
+        expect(WorkingHours::Config.working_hours).to eq(config2)
+      end
+
       expect {
-        Thread.new {
-          WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
-        }.join
-      }.not_to change { WorkingHours::Config.working_hours }
+        sleep 0.1 # let the thread begin its execution
+      }.not_to change { WorkingHours::Config.working_hours }.from(config)
+
+      expect {
+        WorkingHours::Config.working_hours = config3
+      }.to change { WorkingHours::Config.working_hours }.from(config).to(config3)
+
+      expect {
+        thread.run
+        thread.join
+      }.not_to change { WorkingHours::Config.working_hours }.from(config3)
     end
 
     it 'is fiber safe' do
+      expect(WorkingHours::Config.working_hours).to eq(config)
+
+      fiber = Fiber.new do
+        WorkingHours::Config.working_hours = config2
+        expect(WorkingHours::Config.working_hours).to eq(config2)
+        Fiber.yield
+        expect(WorkingHours::Config.working_hours).to eq(config2)
+      end
+
       expect {
-        Fiber.new {
-          WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
-        }.resume
-      }.not_to change { WorkingHours::Config.working_hours }
+        fiber.resume
+      }.not_to change { WorkingHours::Config.working_hours }.from(config)
+
+      expect {
+        WorkingHours::Config.working_hours = config3
+      }.to change { WorkingHours::Config.working_hours }.from(config).to(config3)
+
+      expect {
+        fiber.resume
+      }.not_to change { WorkingHours::Config.working_hours }.from(config3)
     end
 
     it 'is initialized from last known global config' do
