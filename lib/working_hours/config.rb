@@ -4,12 +4,10 @@ module WorkingHours
   InvalidConfiguration = Class.new StandardError
 
   class Config
-
     TIME_FORMAT = /\A([0-2][0-9])\:([0-5][0-9])(?:\:([0-5][0-9]))?\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
 
     class << self
-
       def working_hours
         config[:working_hours]
       end
@@ -32,9 +30,26 @@ module WorkingHours
         config.delete :precompiled
       end
 
+      def holiday_hours
+        config[:holiday_hours]
+      end
+
+      def holiday_hours=(val)
+        validate_holiday_hours! val
+        config[:holiday_hours] = val
+        global_config[:holiday_hours] = val
+        config.delete :precompiled
+      end
+
       # Returns an optimized for computing version
       def precompiled
-        config_hash = [config[:working_hours], config[:holidays], config[:time_zone]].hash
+        config_hash = [
+          config[:working_hours],
+          config[:holiday_hours],
+          config[:holidays],
+          config[:time_zone]
+        ].hash
+
         if config_hash != config[:config_hash]
           config[:config_hash] = config_hash
           config.delete :precompiled
@@ -42,13 +57,20 @@ module WorkingHours
 
         config[:precompiled] ||= begin
           validate_working_hours! config[:working_hours]
+          validate_holiday_hours! config[:holiday_hours]
           validate_holidays! config[:holidays]
           validate_time_zone! config[:time_zone]
-          compiled = {working_hours: []}
+          compiled = { working_hours: [], holiday_hours: {} }
           working_hours.each do |day, hours|
             compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}
             hours.each do |start, finish|
               compiled[:working_hours][DAYS_OF_WEEK.index(day)][compile_time(start)] = compile_time(finish)
+            end
+          end
+          holiday_hours.each do |day, hours|
+            compiled[:holiday_hours][day] = {}
+            hours.each do |start, finish|
+              compiled[:holiday_hours][day][compile_time(start)] = compile_time(finish)
             end
           end
           compiled[:holidays] = Set.new(holidays)
@@ -72,16 +94,19 @@ module WorkingHours
         Thread.current[:working_hours] = default_config
       end
 
-      def with_config(working_hours: nil, holidays: nil, time_zone: nil)
+      def with_config(working_hours: nil, holiday_hours: nil, holidays: nil, time_zone: nil)
         original_working_hours = self.working_hours
+        original_holiday_hours = self.holiday_hours
         original_holidays = self.holidays
         original_time_zone = self.time_zone
         self.working_hours = working_hours if working_hours
+        self.holiday_hours = holiday_hours if holiday_hours
         self.holidays = holidays if holidays
         self.time_zone = time_zone if time_zone
         yield
       ensure
         self.working_hours = original_working_hours
+        self.holiday_hours = original_holiday_hours
         self.holidays = original_holidays
         self.time_zone = original_time_zone
       end
@@ -105,6 +130,7 @@ module WorkingHours
             thu: {'09:00' => '17:00'},
             fri: {'09:00' => '17:00'}
           },
+          holiday_hours: {},
           holidays: [],
           time_zone: ActiveSupport::TimeZone['UTC']
         }
@@ -151,6 +177,10 @@ module WorkingHours
         end
       end
 
+      def validate_holiday_hours! week
+        true
+      end
+
       def validate_holidays! holidays
         if not holidays.respond_to?(:to_a)
           raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must act like an array"
@@ -175,12 +205,10 @@ module WorkingHours
         end
         res
       end
-
     end
 
     private
 
-    def initialize
-    end
+    def initialize; end
   end
 end

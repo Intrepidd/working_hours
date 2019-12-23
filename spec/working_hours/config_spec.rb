@@ -267,6 +267,7 @@ describe WorkingHours::Config do
     it 'computes an optimized version' do
       expect(subject).to eq({
           :working_hours => [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}],
+          :holiday_hours => {},
           :holidays => Set.new([]),
           :time_zone => ActiveSupport::TimeZone['UTC']
         })
@@ -276,6 +277,7 @@ describe WorkingHours::Config do
       WorkingHours::Config.working_hours = {:mon => {'20:32:59' => '22:59:59'}}
       expect(subject).to eq({
         :working_hours => [nil, {73979 => 82799}],
+        :holiday_hours => {},
         :holidays => Set.new([]),
         :time_zone => ActiveSupport::TimeZone['UTC']
       })
@@ -285,6 +287,7 @@ describe WorkingHours::Config do
       WorkingHours::Config.working_hours = {:mon => {'20:00' => '24:00'}}
       expect(subject).to eq({
         :working_hours => [nil, {72000 => 86399.999999}],
+        :holiday_hours => {},
         :holidays => Set.new([]),
         :time_zone => ActiveSupport::TimeZone['UTC']
       })

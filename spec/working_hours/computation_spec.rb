@@ -146,10 +146,15 @@ describe WorkingHours::Computation do
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
+
+    it 'jumps outside holiday hours', :focus do
+      WorkingHours::Config.working_hours = { fri: { '08:00' => '18:00' } }
+      WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
+      expect(advance_to_working_time(Time.utc(2019, 12, 27, 9))).to eq(Time.utc(2019, 12, 27, 10))
+    end
   end
 
   describe '#advance_to_closing_time' do
-
     it 'jumps non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
       holiday = Time.utc(2014, 5, 1, 12, 0)

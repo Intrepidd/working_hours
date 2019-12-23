@@ -76,7 +76,7 @@ module WorkingHours
         end
         # find first working range after time
         time_in_day = time.seconds_since_midnight
-        (config[:working_hours][time.wday] || {}).each do |from, to|
+        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday] || {}).each do |from, to|
           return time if time_in_day >= from and time_in_day < to
           return time + (from - time_in_day) if from >= time_in_day
         end
@@ -222,6 +222,5 @@ module WorkingHours
       else time
       end
     end
-
   end
 end
