@@ -3,7 +3,6 @@ require 'spec_helper'
 describe WorkingHours::Config do
 
   describe '.working_hours' do
-
     let(:config) { WorkingHours::Config.working_hours }
     let(:config2) { { :mon => { '08:00' => '14:00' } } }
     let(:config3) { { :tue => { '10:00' => '16:00' } } }
@@ -155,7 +154,132 @@ describe WorkingHours::Config do
           1.working.hour.ago
         }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid type for `mon`: String - must be Hash')
       end
+    end
+  end
 
+  describe '.holiday_hours' do
+    let(:config) { WorkingHours::Config.holiday_hours }
+    let(:config2) { { '2019-12-01' => { '08:00' => '14:00' } } }
+    let(:config3) { { '2019-12-02' => { '10:00' => '16:00' } } }
+
+    it 'has a default config' do
+      expect(config).to be_kind_of(Hash)
+    end
+
+    it 'is thread safe' do
+      expect(WorkingHours::Config.holiday_hours).to eq(config)
+
+      thread = Thread.new do
+        WorkingHours::Config.holiday_hours = config2
+        expect(WorkingHours::Config.holiday_hours).to eq(config2)
+        Thread.stop
+        expect(WorkingHours::Config.holiday_hours).to eq(config2)
+      end
+
+      expect {
+        sleep 0.1 # let the thread begin its execution
+      }.not_to change { WorkingHours::Config.holiday_hours }.from(config)
+
+      expect {
+        WorkingHours::Config.holiday_hours = config3
+      }.to change { WorkingHours::Config.holiday_hours }.from(config).to(config3)
+
+      expect {
+        thread.run
+        thread.join
+      }.not_to change { WorkingHours::Config.holiday_hours }.from(config3)
+    end
+
+    it 'is fiber safe' do
+      expect(WorkingHours::Config.holiday_hours).to eq(config)
+
+      fiber = Fiber.new do
+        WorkingHours::Config.holiday_hours = config2
+        expect(WorkingHours::Config.holiday_hours).to eq(config2)
+        Fiber.yield
+        expect(WorkingHours::Config.holiday_hours).to eq(config2)
+      end
+
+      expect {
+        fiber.resume
+      }.not_to change { WorkingHours::Config.holiday_hours }.from(config)
+
+      expect {
+        WorkingHours::Config.holiday_hours = config3
+      }.to change { WorkingHours::Config.holiday_hours }.from(config).to(config3)
+
+      expect {
+        fiber.resume
+      }.not_to change { WorkingHours::Config.holiday_hours }.from(config3)
+    end
+
+    it 'is initialized from last known global config' do
+      WorkingHours::Config.holiday_hours = {'2019-12-01' => {'08:00' => '14:00'}}
+      Thread.new {
+        expect(WorkingHours::Config.holiday_hours).to match '2019-12-01' => {'08:00' => '14:00'}
+      }.join
+    end
+
+    it 'should support multiple timespan per day' do
+      time_sheet = {'2019-12-01' => {'08:00' => '12:00', '14:00' => '18:00'}}
+      WorkingHours::Config.holiday_hours = time_sheet
+      expect(config).to eq(time_sheet)
+    end
+
+    describe 'validations' do
+      it 'rejects invalid day' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => 1, 'aaaaaa' => 2}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid day identifier(s): Must be in the format 'YYYY-MM-DD'")
+      end
+
+      it 'rejects other type than hash' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => []}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid type for `2019-12-01`: Array - must be Hash")
+      end
+
+      it 'rejects empty range' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => {}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "No working hours given for day `2019-12-01`")
+      end
+
+      it 'rejects invalid time format' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => {'8:0' => '12:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 8:0 - must be 'HH:MM(:SS)'")
+
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => {'08:00' => '24:10'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid time: 24:10 - outside of day")
+      end
+
+      it 'rejects invalid range' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => {'12:30' => '12:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid range: 12:30 => 12:00 - ends before it starts")
+      end
+
+      it 'rejects overlapping range' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => {'08:00' => '13:00', '12:00' => '18:00'}}
+        }.to raise_error(WorkingHours::InvalidConfiguration, "Invalid range: 12:00 => 18:00 - overlaps previous range")
+      end
+
+      it 'does not reject out-of-order, non-overlapping ranges' do
+        expect {
+          WorkingHours::Config.holiday_hours = {'2019-12-01' => {'10:00' => '11:00', '08:00' => '09:00'}}
+        }.not_to raise_error
+      end
+
+      it 'raises an error when precompiling if working hours are invalid after assignment' do
+        WorkingHours::Config.holiday_hours = {'2019-12-01' => {'10:00' => '11:00', '08:00' => '09:00'}}
+        WorkingHours::Config.holiday_hours['2019-12-01'] = 'Not correct'
+        expect {
+          1.working.hour.ago
+        }.to raise_error(WorkingHours::InvalidConfiguration, 'Invalid type for `2019-12-01`: String - must be Hash')
+      end
     end
   end
 

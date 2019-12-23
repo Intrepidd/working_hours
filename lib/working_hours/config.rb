@@ -178,7 +178,33 @@ module WorkingHours
       end
 
       def validate_holiday_hours! week
-        true
+        begin
+          (week.keys.select { |k| Date.parse(k) })
+        rescue => ex
+          raise InvalidConfiguration.new "Invalid day identifier(s): Must be in the format 'YYYY-MM-DD'"
+        end
+        week.each do |day, hours|
+          if not hours.is_a? Hash
+            raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
+          elsif hours.empty?
+            raise InvalidConfiguration.new "No working hours given for day `#{day}`"
+          end
+          last_time = nil
+          hours.sort.each do |start, finish|
+            if not start =~ TIME_FORMAT
+              raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM(:SS)'"
+            elsif not finish =~ TIME_FORMAT
+              raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM(:SS)'"
+            elsif compile_time(finish) >= 24 * 60 * 60
+              raise InvalidConfiguration.new "Invalid time: #{finish} - outside of day"
+            elsif start >= finish
+              raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - ends before it starts"
+            elsif last_time and start < last_time
+              raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - overlaps previous range"
+            end
+            last_time = finish
+          end
+        end
       end
 
       def validate_holidays! holidays
