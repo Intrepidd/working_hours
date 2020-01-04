@@ -96,7 +96,7 @@ module WorkingHours
         # find next working range after time
         time_in_day = time.seconds_since_midnight
         time = time.beginning_of_day
-        (config[:working_hours][time.wday] || {}).each do |from, to|
+        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday] || {}).each do |from, to|
           return time + to if time_in_day >= from and time_in_day < to
           return time + to if from >= time_in_day
         end
@@ -127,7 +127,7 @@ module WorkingHours
         end
         # find last working range before time
         time_in_day = time.seconds_since_midnight
-        (config[:working_hours][time.wday] || {}).reverse_each do |from, to|
+        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday] || {}).reverse_each do |from, to|
           # round is used to suppress miliseconds hack from `end_of_day`
           return time if time_in_day > from and time_in_day <= to
           return (time - (time_in_day - to)) if to <= time_in_day
@@ -148,7 +148,7 @@ module WorkingHours
       time = in_config_zone(time, config: config)
       return false if not working_day?(time, config: config)
       time_in_day = time.seconds_since_midnight
-      config[:working_hours][time.wday].each do |from, to|
+      (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday]).each do |from, to|
         return true if time_in_day >= from and time_in_day < to
       end
       false

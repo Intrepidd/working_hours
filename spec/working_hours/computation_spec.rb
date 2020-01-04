@@ -109,6 +109,23 @@ describe WorkingHours::Computation do
       time = Time.utc(2014, 4, 8, 0, 0, 30) # Tuesday
       expect(add_seconds(time, -60)).to eq(Time.utc(2014, 4, 7, 23, 59, 00))
     end
+
+    context 'with holiday hours' do
+      before do
+        WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
+        WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
+      end
+
+      it 'adds working seconds' do
+        time = Time.utc(2019, 12, 27, 9)
+        expect(add_seconds(time, 120)).to eq(Time.utc(2019, 12, 27, 10, 2))
+      end
+
+      it 'removes working seconds' do
+        time = Time.utc(2019, 12, 27, 9)
+        expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 26, 17, 58))
+      end
+    end
   end
 
   describe '#advance_to_working_time' do
@@ -249,10 +266,25 @@ describe WorkingHours::Computation do
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(advance_to_closing_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
+
+    context 'with holiday hours' do
+      before do
+        WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
+      end
+
+      it 'takes into account reduced holiday closing' do
+        WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '17:00' } }
+        expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 27, 17))
+      end
+
+      it 'takes into account extended holiday closing' do
+        WorkingHours::Config.holiday_hours = { '2019-12-26' => { '10:00' => '21:00' } }
+        expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 26, 21))
+      end
+    end
   end
 
   describe '#next_working_time' do
-
     it 'jumps non-working day' do
       WorkingHours::Config.holidays = [Date.new(2014, 5, 1)]
       holiday = Time.utc(2014, 5, 1, 12, 0)
@@ -401,6 +433,23 @@ describe WorkingHours::Computation do
       # Monday 00:00 am UTC is 09:00 am Tokyo, working time !
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(in_working_hours?(Time.utc(2014, 4, 7, 0, 0))).to be(true)
+    end
+
+    context 'with holiday hours' do
+      before do
+        WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
+        WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '20:00' } }
+      end
+
+      it 'returns true during working hours' do
+        expect(in_working_hours?(Time.utc(2019, 12, 26, 9))).to be(true)
+        expect(in_working_hours?(Time.utc(2019, 12, 27, 19))).to be(true)
+      end
+  
+      it 'returns false outside working hours' do
+        expect(in_working_hours?(Time.utc(2019, 12, 26, 7))).to be(false)
+        expect(in_working_hours?(Time.utc(2019, 12, 27, 9))).to be(false)
+      end
     end
   end
 
