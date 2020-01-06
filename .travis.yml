@@ -1,29 +1,22 @@
 language: ruby
 rvm:
-  - 2.0.0
-  - 2.1.8
-  - 2.2.4
-  - 2.3.0
-  - 2.4.0
-  - ruby-head
-  - jruby-1.7.23
-  - jruby-9.0.4.0
-  - jruby-head
-before_install:
-  - bundler --version || gem install bundler
-env: JRUBY_OPTS=--2.0
+  - 2.4.9
+  - 2.5.7
+  - 2.6.5
 gemfile:
-  - gemfiles/Gemfile.activesupport-3.2.x
-  - gemfiles/Gemfile.activesupport-4.0.x
-  - gemfiles/Gemfile.activesupport-4.1.x
-  - gemfiles/Gemfile.activesupport-4.2.x
-  - gemfiles/Gemfile.activesupport-edge
-matrix:
+  - gemfiles/Gemfile.activesupport-4.x
+  - gemfiles/Gemfile.activesupport-5.x
+  - gemfiles/Gemfile.activesupport-6.x
+jobs:
   exclude:
-    - rvm: 2.4.0
-      env: JRUBY_OPTS=--2.0
-      gemfile: gemfiles/Gemfile.activesupport-3.2.x
+    - rvm: 2.4.9
+      gemfile: gemfiles/Gemfile.activesupport-6.x
+  include:
+    - rvm: ruby-head
+      gemfile: gemfiles/Gemfile.activesupport-edge
+  include:
+    - rvm: jruby-head
+      gemfile: gemfiles/Gemfile.activesupport-edge
   allow_failures:
     - gemfile: gemfiles/Gemfile.activesupport-edge
-    - rvm: ruby-head
-    - rvm: jruby-head
+  fast_finish: true
