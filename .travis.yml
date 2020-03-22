@@ -17,7 +17,6 @@ jobs:
   include:
     - rvm: ruby-head
       gemfile: gemfiles/Gemfile.activesupport-edge
-  include:
     - rvm: jruby-head
       gemfile: gemfiles/Gemfile.activesupport-edge
   allow_failures:
