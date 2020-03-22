@@ -16,6 +16,7 @@ gemfile:
   - gemfiles/Gemfile.activesupport-5.0.x
   - gemfiles/Gemfile.activesupport-5.1.x
   - gemfiles/Gemfile.activesupport-5.2.x
+  - gemfiles/Gemfile.activesupport-6.0.x
   - gemfiles/Gemfile.activesupport-edge
 matrix:
   allow_failures:
