@@ -32,10 +32,24 @@ describe WorkingHours::Computation do
       expect(add_days(time, 1)).to eq(Date.new(2014, 4, 9)) # Wednesday
     end
 
+    it 'skips non worked days when origin is not worked' do
+      time = Date.new(2014, 4, 8) # Tuesday
+      WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}, thu: {'09:00' => '17:00'}, sun: {'09:00' => '17:00'}}
+      expect(add_days(time, 1)).to eq(Date.new(2014, 4, 10)) # Wednesday
+      expect(add_days(time, -1)).to eq(Date.new(2014, 4, 6)) # Sunday
+    end
+
     it 'skips holidays' do
       time = Date.new(2014, 4, 7) # Monday
       WorkingHours::Config.holidays = [Date.new(2014, 4, 8)] # Tuesday
       expect(add_days(time, 1)).to eq(Date.new(2014, 4, 9)) # Wednesday
+    end
+
+    it 'skips holidays when origin is holiday' do
+      time = Date.new(2014, 4, 9) # Wednesday
+      WorkingHours::Config.holidays = [time] # Wednesday
+      expect(add_days(time, 1)).to eq(Date.new(2014, 4, 11)) # Thursday
+      expect(add_days(time, -1)).to eq(Date.new(2014, 4, 7)) # Monday
     end
 
     it 'skips holidays and non worked days' do
