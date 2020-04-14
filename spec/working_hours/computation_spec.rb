@@ -59,6 +59,12 @@ describe WorkingHours::Computation do
       expect(add_days(time, 3)).to eq(Date.new(2014, 4, 21))
     end
 
+    it 'returns the original value when adding 0 days' do
+      time = Date.new(2014, 4, 7)
+      WorkingHours::Config.holidays = [time]
+      expect(add_days(time, 0)).to eq(time)
+    end
+
     it 'accepts time given from any time zone' do
       time = Time.utc(1991, 11, 14, 21, 0, 0) # Thursday 21 pm UTC
       WorkingHours::Config.time_zone = 'Tokyo' # But we are at tokyo, so it's already Friday 6 am

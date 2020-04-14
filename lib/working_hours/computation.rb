@@ -5,6 +5,8 @@ module WorkingHours
   module Computation
 
     def add_days origin, days, config: nil
+      return origin if days.zero?
+
       config ||= wh_config
       time = in_config_zone(origin, config: config)
       time += (days <=> 0).day until working_day?(time, config: config)
