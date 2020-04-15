@@ -1,6 +1,16 @@
 # Unreleased
 
-[Compare master with v1.1.4](https://github.com/intrepidd/working_hours/compare/v1.1.4...master)
+[Compare master with v1.2.0](https://github.com/intrepidd/working_hours/compare/v1.2.0...master)
+
+# v1.2.0
+* Drop support for ruby 2.0, 2.1, 2.2 and 2.3
+* Drop support for jruby 1.7 and 9.0
+* Drop support for ActiveSupport 3.x
+* Add support for jruby 9.2
+* Add support for ruby 2.5, 2.6 and 2.7
+* Add support for ActiveSupport 5.x and 6.x
+* Fix day computations when origin is a holiday or a non worked day - [#36](https://github.com/Intrepidd/working_hours/pull/39)
+
 
 # v1.1.4
 * Fix thread safety - [#36](https://github.com/Intrepidd/working_hours/pull/36)
