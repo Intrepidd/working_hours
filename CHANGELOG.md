@@ -9,7 +9,7 @@
 * Add support for jruby 9.2
 * Add support for ruby 2.5, 2.6 and 2.7
 * Add support for ActiveSupport 5.x and 6.x
-* Fix day computations when origin is a holiday or a non worked day - [#36](https://github.com/Intrepidd/working_hours/pull/39)
+* Fix day computations when origin is a holiday or a non worked day - [#39](https://github.com/Intrepidd/working_hours/pull/39)
 
 
 # v1.1.4
