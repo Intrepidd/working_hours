@@ -129,6 +129,13 @@ describe WorkingHours::Computation do
       time = Time.utc(2014, 4, 8, 0, 0, 30) # Tuesday
       expect(add_seconds(time, -60)).to eq(Time.utc(2014, 4, 7, 23, 59, 00))
     end
+
+    it 'honors miliseconds in the base time and increment (but return rounded result)' do
+      # Rounding the base time or increments before the end would yield a wrong result
+      time = Time.utc(1991, 11, 15, 16, 59, 42.25) # +250ms
+      expect(add_seconds(time, 120.4)).to eq(Time.utc(1991, 11, 18, 9, 1, 43))
+    end
+
   end
 
   describe '#advance_to_working_time' do
@@ -535,6 +542,21 @@ describe WorkingHours::Computation do
         Time.new(2014, 4, 7, 1, 0, 0, "-09:00"), # Monday 10am in UTC
         Time.new(2014, 4, 7, 15, 0, 0, "-04:00"), # Monday 7pm in UTC
       )).to eq(7.hours)
+    end
+
+    # generates two times with +0ms, +250ms, +500ms, +750ms and +1s
+    # then for each combination compare the result with a ruby diff
+    context 'with precise miliseconds timings' do
+      reference = Time.utc(2014, 4, 7, 10)
+      0.step(1.0, 0.25) do |offset1|
+        0.step(1.0, 0.25) do |offset2|
+          from = reference + offset1
+          to = reference + offset2
+          it "returns expected value (#{(to - from).round}) for #{offset1} — #{offset2} interval" do
+            expect(working_time_between(from, to)).to eq((to - from).round)
+          end
+        end
+      end
     end
   end
 end

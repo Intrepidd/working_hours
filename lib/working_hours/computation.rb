@@ -34,7 +34,7 @@ module WorkingHours
 
     def add_seconds origin, seconds, config: nil
       config ||= wh_config
-      time = in_config_zone(origin, config: config).round
+      time = in_config_zone(origin, config: config)
       while seconds > 0
         # roll to next business period
         time = advance_to_working_time(time, config: config)
@@ -72,7 +72,7 @@ module WorkingHours
 
     def advance_to_working_time time, config: nil
       config ||= wh_config
-      time = in_config_zone(time, config: config).round
+      time = in_config_zone(time, config: config)
       loop do
         # skip holidays and weekends
         while not working_day?(time, config: config)
@@ -91,7 +91,7 @@ module WorkingHours
 
     def advance_to_closing_time time, config: nil
       config ||= wh_config
-      time = in_config_zone(time, config: config).round
+      time = in_config_zone(time, config: config)
       loop do
         # skip holidays and weekends
         while not working_day?(time, config: config)
@@ -123,7 +123,7 @@ module WorkingHours
 
     def return_to_exact_working_time time, config: nil
       config ||= wh_config
-      time = in_config_zone(time, config: config).round
+      time = in_config_zone(time, config: config)
       loop do
         # skip holidays and weekends
         while not working_day?(time, config: config)
@@ -180,7 +180,7 @@ module WorkingHours
         -working_time_between(to, from, config: config)
       else
         from = advance_to_working_time(in_config_zone(from, config: config))
-        to = in_config_zone(to, config: config).round
+        to = in_config_zone(to, config: config)
         distance = 0
         while from < to
           # look at working ranges
