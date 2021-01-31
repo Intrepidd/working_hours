@@ -4,6 +4,7 @@
 
 # v1.3.0
 * Improve supports for fractional seconds in input times by only rounding results at the end - [#42](https://github.com/Intrepidd/working_hours/issues/42) [#43](https://github.com/Intrepidd/working_hours/pull/43)
+* Increase code safety by always initializing an empty hash for each day of the week in the precompiled config (inspired by [#35](https://github.com/Intrepidd/working_hours/pull/35)
 
 # v1.2.0
 * Drop support for ruby 2.0, 2.1, 2.2 and 2.3

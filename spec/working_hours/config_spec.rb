@@ -266,16 +266,23 @@ describe WorkingHours::Config do
 
     it 'computes an optimized version' do
       expect(subject).to eq({
-          :working_hours => [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}],
+          :working_hours => [{}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {}],
           :holidays => Set.new([]),
           :time_zone => ActiveSupport::TimeZone['UTC']
         })
     end
 
+    it 'includes default values for each days so computation does not fail' do
+      WorkingHours::Config.working_hours = {:mon => {'08:00' => '14:00'}}
+      expect(subject[:working_hours]).to eq([{}, {28800=>50400}, {}, {}, {}, {}, {}])
+      expect(WorkingHours.working_time_between(Time.utc(2014, 4, 14, 0), Time.utc(2014, 4, 21, 0))).to eq(3600*6)
+      expect(WorkingHours.add_seconds(Time.utc(2014, 4, 14, 0), 3600*7)).to eq(Time.utc(2014, 4, 21, 9))
+    end
+
     it 'supports seconds' do
       WorkingHours::Config.working_hours = {:mon => {'20:32:59' => '22:59:59'}}
       expect(subject).to eq({
-        :working_hours => [nil, {73979 => 82799}],
+        :working_hours => [{}, {73979 => 82799}, {}, {}, {}, {}, {}],
         :holidays => Set.new([]),
         :time_zone => ActiveSupport::TimeZone['UTC']
       })
@@ -284,7 +291,7 @@ describe WorkingHours::Config do
     it 'supports 24:00 (converts to 23:59:59.999999)' do
       WorkingHours::Config.working_hours = {:mon => {'20:00' => '24:00'}}
       expect(subject).to eq({
-        :working_hours => [nil, {72000 => 86399.999999}],
+        :working_hours => [{}, {72000 => 86399.999999}, {}, {}, {}, {}, {}],
         :holidays => Set.new([]),
         :time_zone => ActiveSupport::TimeZone['UTC']
       })
@@ -296,9 +303,9 @@ describe WorkingHours::Config do
       }.to change {
         WorkingHours::Config.precompiled[:working_hours]
       }.from(
-        [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}]
+        [{}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {}]
       ).to(
-        [nil, {28800=>50400}]
+        [{}, {28800=>50400}, {}, {}, {}, {}, {}]
       )
     end
 

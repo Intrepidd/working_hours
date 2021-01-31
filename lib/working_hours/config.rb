@@ -44,9 +44,8 @@ module WorkingHours
           validate_working_hours! config[:working_hours]
           validate_holidays! config[:holidays]
           validate_time_zone! config[:time_zone]
-          compiled = {working_hours: []}
+          compiled = { working_hours: Array.new(7) { Hash.new } }
           working_hours.each do |day, hours|
-            compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}
             hours.each do |start, finish|
               compiled[:working_hours][DAYS_OF_WEEK.index(day)][compile_time(start)] = compile_time(finish)
             end
