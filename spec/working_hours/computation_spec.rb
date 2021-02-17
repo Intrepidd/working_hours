@@ -261,6 +261,7 @@ describe WorkingHours::Computation do
       end
 
       it 'give precise computation with nothing other than miliseconds' do
+        pending "iso8601 is not precise enough on AS < 4" if ActiveSupport::VERSION::MAJOR <= 4
         expect(advance_to_closing_time(monday_morning).iso8601(25)).to eq("2014-04-07T23:59:59.9999990000000000000000000Z")
       end
     end
@@ -574,7 +575,7 @@ describe WorkingHours::Computation do
       expect { working_time_between(
         Time.utc(2014, 4, 7, 5, 0, 0),
         Time.utc(2014, 4, 7, 15, 0, 0),
-      ) }.to raise_error(RuntimeError, /Invalid loop detected in working_time_between \(from=2014-04-07T08:59:59.999899999999Z, to=2014-04-07T15:00:00.000000000000Z, distance=0, config=/)
+      ) }.to raise_error(RuntimeError, /Invalid loop detected in working_time_between \(from=2014-04-07T08:59:59.999/)
     end
 
     # generates two times with +0ms, +250ms, +500ms, +750ms and +1s
