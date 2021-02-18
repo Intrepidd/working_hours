@@ -7,6 +7,7 @@ module WorkingHours
 
     TIME_FORMAT = /\A([0-2][0-9])\:([0-5][0-9])(?:\:([0-5][0-9]))?\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
+    MIDNIGHT = Rational('86399.999999')
 
     class << self
 
@@ -115,7 +116,7 @@ module WorkingHours
         sec = time[TIME_FORMAT,3].to_i
         time = hour * 3600 + min * 60 + sec
         # Converts 24:00 to 23:59:59.999999
-        return 86399.999999 if time == 86400
+        return MIDNIGHT if time == 86400
         time
       end
 

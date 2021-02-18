@@ -173,6 +173,10 @@ describe WorkingHours::Computation do
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
+
+    it 'do not leak nanoseconds when advancing' do
+      expect(advance_to_working_time(Time.utc(2014, 4, 7, 5, 0, 0, 123456.789))).to eq(Time.utc(2014, 4, 7, 9, 0, 0, 0))
+    end
   end
 
   describe '#advance_to_closing_time' do
@@ -240,7 +244,7 @@ describe WorkingHours::Computation do
       end
 
       let(:monday_morning) { Time.utc(2014, 4, 7, 0) }
-      let(:monday_closing) { Time.utc(2014, 4, 7) + 86399.999999 }
+      let(:monday_closing) { Time.utc(2014, 4, 7) + WorkingHours::Config::MIDNIGHT }
       let(:tuesday_closing) { Time.utc(2014, 4, 8, 17) }
       let(:sunday) { Time.utc(2014, 4, 6, 17) }
 
@@ -254,6 +258,11 @@ describe WorkingHours::Computation do
 
       it 'moves over midnight' do
         expect(advance_to_closing_time(sunday)).to eq(monday_closing)
+      end
+
+      it 'give precise computation with nothing other than miliseconds' do
+        pending "iso8601 is not precise enough on AS < 4" if ActiveSupport::VERSION::MAJOR <= 4
+        expect(advance_to_closing_time(monday_morning).iso8601(25)).to eq("2014-04-07T23:59:59.9999990000000000000000000Z")
       end
     end
 
@@ -270,6 +279,10 @@ describe WorkingHours::Computation do
     it 'returns time in config zone' do
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(advance_to_closing_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
+    end
+
+    it 'do not leak nanoseconds when advancing' do
+      expect(advance_to_closing_time(Time.utc(2014, 4, 7, 5, 0, 0, 123456.789))).to eq(Time.utc(2014, 4, 7, 17, 0, 0, 0))
     end
   end
 
@@ -542,6 +555,27 @@ describe WorkingHours::Computation do
         Time.new(2014, 4, 7, 1, 0, 0, "-09:00"), # Monday 10am in UTC
         Time.new(2014, 4, 7, 15, 0, 0, "-04:00"), # Monday 7pm in UTC
       )).to eq(7.hours)
+    end
+
+    it 'uses precise computation to avoid useless loops' do
+      # +200 usec on each time, using floating point would cause
+      # precision issues and require several iterations
+      expect(self).to receive(:advance_to_working_time).twice.and_call_original
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 5, 0, 0, 200),
+        Time.utc(2014, 4, 7, 15, 0, 0, 200),
+      )).to eq(6.hours)
+    end
+
+    it 'do not cause infinite loop if the time is not advancing properly' do
+      # simulate some computation/precision error
+      expect(self).to receive(:advance_to_working_time).twice do |time|
+        time.change(hour: 9) - 0.0001
+      end
+      expect { working_time_between(
+        Time.utc(2014, 4, 7, 5, 0, 0),
+        Time.utc(2014, 4, 7, 15, 0, 0),
+      ) }.to raise_error(RuntimeError, /Invalid loop detected in working_time_between \(from=2014-04-07T08:59:59.999/)
     end
 
     # generates two times with +0ms, +250ms, +500ms, +750ms and +1s

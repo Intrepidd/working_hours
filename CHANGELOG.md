@@ -1,6 +1,11 @@
 # Unreleased
 
-[Compare master with v1.3.0](https://github.com/intrepidd/working_hours/compare/v1.3.0...master)
+[Compare master with v1.3.1](https://github.com/intrepidd/working_hours/compare/v1.3.1...master)
+
+# v1.3.1
+* Improve computation accuracy in `advance_to_working_time` and `working_time_between` by using more exact (integer-based) time operations instead of floating point numbers - [#44](https://github.com/Intrepidd/working_hours/pull/44)
+* Raise an exception when we detect an infinite loops in `advance_to_working_time` to improve resilience and make debugging easier - [#44](https://github.com/Intrepidd/working_hours/pull/44)
+* Use a Rational number for the midnight value to avoid leaking sub-nanoseconds residue because of floating point accuracy - [#44](https://github.com/Intrepidd/working_hours/pull/44)
 
 # v1.3.0
 * Improve supports for fractional seconds in input times by only rounding results at the end - [#42](https://github.com/Intrepidd/working_hours/issues/42) [#43](https://github.com/Intrepidd/working_hours/pull/43)

@@ -82,7 +82,7 @@ module WorkingHours
         time_in_day = time.seconds_since_midnight
         config[:working_hours][time.wday].each do |from, to|
           return time if time_in_day >= from and time_in_day < to
-          return time + (from - time_in_day) if from >= time_in_day
+          return time.beginning_of_day + from if from >= time_in_day
         end
         # if none is found, go to next day and loop
         time = (time + 1.day).beginning_of_day
@@ -101,8 +101,7 @@ module WorkingHours
         time_in_day = time.seconds_since_midnight
         time = time.beginning_of_day
         config[:working_hours][time.wday].each do |from, to|
-          return time + to if time_in_day >= from and time_in_day < to
-          return time + to if from >= time_in_day
+          return time + to if time_in_day < to
         end
         # if none is found, go to next day and loop
         time = time + 1.day
@@ -183,20 +182,25 @@ module WorkingHours
         to = in_config_zone(to, config: config)
         distance = 0
         while from < to
+          from_was = from
           # look at working ranges
           time_in_day = from.seconds_since_midnight
           config[:working_hours][from.wday].each do |begins, ends|
             if time_in_day >= begins and time_in_day < ends
-              # take all we can
-              take = [ends - time_in_day, to - from].min
-              # advance time
-              from += take
-              # increase counter
-              distance += take
+              if (to - from) > (ends - time_in_day)
+                # take all the range and continue
+                distance += (ends - time_in_day)
+                from = from.beginning_of_day + ends
+              else
+                # take only what's needed and stop
+                distance += (to - from)
+                from = to
+              end
             end
           end
           # roll to next business period
           from = advance_to_working_time(from, config: config)
+          raise "Invalid loop detected in working_time_between (from=#{from.iso8601(12)}, to=#{to.iso8601(12)}, distance=#{distance}, config=#{config}), please open an issue ;)" unless from > from_was
         end
         distance.round # round up to supress miliseconds introduced by 24:00 hack
       end
