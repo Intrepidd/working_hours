@@ -217,7 +217,9 @@ module WorkingHours
       seconds %= 3600
       minutes = (seconds / 60).to_i
       seconds %= 60
-      time.change(hour: hour, min: minutes, sec: seconds)
+      # sec/usec separation is required for ActiveSupport <= 5.1
+      usec = ((seconds % 1) * 10**6)
+      time.change(hour: hour, min: minutes, sec: seconds.to_i, usec: usec)
     end
 
     def wh_config
