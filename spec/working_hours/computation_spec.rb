@@ -663,6 +663,15 @@ describe WorkingHours::Computation do
       )).to eq(13.hours)
     end
 
+    it 'works across time shifts + midnight' do
+      WorkingHours::Config.working_hours = {sun: {'00:00' => '24:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      expect(working_time_between(
+        Time.utc(2020, 10, 24, 22, 0),
+        Time.utc(2020, 10, 25, 23, 0),
+      )).to eq(24.hours)
+    end
+
     it 'works across multiple time shifts' do
       WorkingHours::Config.working_hours = {sun: {'08:00' => '21:00'}}
       WorkingHours::Config.time_zone = 'Paris'

@@ -213,6 +213,7 @@ module WorkingHours
     #   time.beginning_of_day + seconds
     # (because this one would shift hours during time shifts days)
     def move_time_of_day time, seconds
+      # return time.beginning_of_day + seconds
       hour = (seconds / 3600).to_i
       seconds %= 3600
       minutes = (seconds / 60).to_i
