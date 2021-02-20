@@ -2,6 +2,9 @@
 
 [Compare master with v1.3.1](https://github.com/intrepidd/working_hours/compare/v1.3.1...master)
 
+# v1.3.2
+* Improve support for time shifts - [#46](https://github.com/Intrepidd/working_hours/pull/46)
+
 # v1.3.1
 * Improve computation accuracy in `advance_to_working_time` and `working_time_between` by using more exact (integer-based) time operations instead of floating point numbers - [#44](https://github.com/Intrepidd/working_hours/pull/44)
 * Raise an exception when we detect an infinite loops in `advance_to_working_time` to improve resilience and make debugging easier - [#44](https://github.com/Intrepidd/working_hours/pull/44)

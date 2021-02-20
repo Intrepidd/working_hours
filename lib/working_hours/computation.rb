@@ -82,7 +82,7 @@ module WorkingHours
         time_in_day = time.seconds_since_midnight
         config[:working_hours][time.wday].each do |from, to|
           return time if time_in_day >= from and time_in_day < to
-          return time.beginning_of_day + from if from >= time_in_day
+          return move_time_of_day(time, from) if from >= time_in_day
         end
         # if none is found, go to next day and loop
         time = (time + 1.day).beginning_of_day
@@ -99,12 +99,11 @@ module WorkingHours
         end
         # find next working range after time
         time_in_day = time.seconds_since_midnight
-        time = time.beginning_of_day
         config[:working_hours][time.wday].each do |from, to|
-          return time + to if time_in_day < to
+          return move_time_of_day(time, to) if time_in_day < to
         end
         # if none is found, go to next day and loop
-        time = time + 1.day
+        time = (time + 1.day).beginning_of_day
       end
     end
 
@@ -131,9 +130,8 @@ module WorkingHours
         # find last working range before time
         time_in_day = time.seconds_since_midnight
         config[:working_hours][time.wday].reverse_each do |from, to|
-          # round is used to suppress miliseconds hack from `end_of_day`
           return time if time_in_day > from and time_in_day <= to
-          return (time - (time_in_day - to)) if to <= time_in_day
+          return move_time_of_day(time, to) if to <= time_in_day
         end
         # if none is found, go to previous day and loop
         time = (time - 1.day).end_of_day
@@ -190,7 +188,7 @@ module WorkingHours
               if (to - from) > (ends - time_in_day)
                 # take all the range and continue
                 distance += (ends - time_in_day)
-                from = from.beginning_of_day + ends
+                from = move_time_of_day(from, ends)
               else
                 # take only what's needed and stop
                 distance += (to - from)
@@ -207,6 +205,23 @@ module WorkingHours
     end
 
     private
+
+    # Changes the time of the day to match given time (in seconds since midnight)
+    # preserving nanosecond prevision (rational number) and honoring time shifts
+    #
+    # This replaces the previous implementation which was:
+    #   time.beginning_of_day + seconds
+    # (because this one would shift hours during time shifts days)
+    def move_time_of_day time, seconds
+      # return time.beginning_of_day + seconds
+      hour = (seconds / 3600).to_i
+      seconds %= 3600
+      minutes = (seconds / 60).to_i
+      seconds %= 60
+      # sec/usec separation is required for ActiveSupport <= 5.1
+      usec = ((seconds % 1) * 10**6)
+      time.change(hour: hour, min: minutes, sec: seconds.to_i, usec: usec)
+    end
 
     def wh_config
       WorkingHours::Config.precompiled
