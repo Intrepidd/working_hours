@@ -17,6 +17,7 @@ module WorkingHours
 
       def working_hours=(val)
         validate_working_hours! val
+        val = sort_working_hours val
         config[:working_hours] = val
         global_config[:working_hours] = val
         config.delete :precompiled
@@ -174,6 +175,14 @@ module WorkingHours
           raise InvalidConfiguration.new "Invalid time zone: #{zone.inspect} - must be String or ActiveSupport::TimeZone"
         end
         res
+      end
+
+      def sort_working_hours week
+        new_hash = {}
+        week.each do |day,config|
+          new_hash[day] = Hash[config.sort]
+        end
+        new_hash
       end
 
     end
