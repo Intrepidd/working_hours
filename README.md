@@ -39,6 +39,7 @@ Time.utc(2014, 8, 4, 8, 32) - 4.working.hours # => 2014-08-01 13:00:00
 friday = Date.new(2014, 10, 17)
 monday = Date.new(2014, 10, 20)
 friday.working_days_until(monday) # => 1
+
 # Time is considered at end of day, so:
 # - friday to saturday = 0 working days
 # - sunday to monday = 1 working days
@@ -69,14 +70,19 @@ tuesday = WorkingHours.next_working_time(monday) # => Tue, 05 Aug 2014 09:00:00 
 
 # Return to previous working time
 WorkingHours.return_to_working_time(Time.utc(2014, 8, 4, 7, 16)) # => Fri, 01 Aug 2014 17:00:00 UTC +00:00
+
+# Return to last opening time
+WorkingHours.return_to_closing_time(Time.utc(2014, 8, 5, 7, 16)) # => Mon, 04 Aug 2014 09:00:00 UTC +00:00
+WorkingHours.return_to_closing_time(Time.utc(2014, 8, 4, 10, 16)) # => Mon, 04 Aug 2014 09:00:00 UTC +00:00
+WorkingHours.return_to_closing_time(Time.utc(2014, 8, 4, 18, 16)) # => Tue, 05 Aug 2014 09:00:00 UTC +00:00
 ```
 
 ## Configuration
 
 The working hours configuration is thread safe and consists of a hash defining working periods for each day, a time zone and a list of days off. You can set it once, for example in a initializer for rails:
 
-```ruby
 # Configure working hours
+```ruby
 WorkingHours::Config.working_hours = {
   :tue => {'09:00' => '12:00', '13:00' => '17:00'},
   :wed => {'09:00' => '12:00', '13:00' => '17:00'},
