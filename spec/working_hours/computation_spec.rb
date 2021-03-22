@@ -190,12 +190,12 @@ describe WorkingHours::Computation do
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
 
-<<<<<<< HEAD
     it 'jumps outside holiday hours', :focus do
       WorkingHours::Config.working_hours = { fri: { '08:00' => '18:00' } }
       WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
       expect(advance_to_working_time(Time.utc(2019, 12, 27, 9))).to eq(Time.utc(2019, 12, 27, 10))
-=======
+    end
+
     it 'do not leak nanoseconds when advancing' do
       expect(advance_to_working_time(Time.utc(2014, 4, 7, 5, 0, 0, 123456.789))).to eq(Time.utc(2014, 4, 7, 9, 0, 0, 0))
     end
@@ -224,7 +224,6 @@ describe WorkingHours::Computation do
       # starting from wrong time-zone
       expect(advance_to_working_time(Time.new(2020, 10, 25, 4, 0, 0, "+02:00"))).to eq(Time.new(2020, 10, 25, 9, 0, 0, "+01:00"))
       expect(advance_to_working_time(Time.new(2020, 10, 25, 1, 0, 0, "+01:00"))).to eq(Time.new(2020, 10, 25, 9, 0, 0, "+01:00"))
->>>>>>> upstream/master
     end
   end
 
@@ -329,7 +328,6 @@ describe WorkingHours::Computation do
       expect(advance_to_closing_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
 
-<<<<<<< HEAD
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
@@ -344,7 +342,8 @@ describe WorkingHours::Computation do
         WorkingHours::Config.holiday_hours = { '2019-12-26' => { '10:00' => '21:00' } }
         expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 26, 21))
       end
-=======
+    end
+
     it 'do not leak nanoseconds when advancing' do
       expect(advance_to_closing_time(Time.utc(2014, 4, 7, 5, 0, 0, 123456.789))).to eq(Time.utc(2014, 4, 7, 17, 0, 0, 0))
     end
@@ -373,7 +372,6 @@ describe WorkingHours::Computation do
       # starting from wrong time-zone
       expect(advance_to_closing_time(Time.new(2020, 10, 25, 4, 0, 0, "+02:00"))).to eq(Time.new(2020, 10, 25, 17, 0, 0, "+01:00"))
       expect(advance_to_closing_time(Time.new(2020, 10, 25, 1, 0, 0, "+01:00"))).to eq(Time.new(2020, 10, 25, 17, 0, 0, "+01:00"))
->>>>>>> upstream/master
     end
   end
 

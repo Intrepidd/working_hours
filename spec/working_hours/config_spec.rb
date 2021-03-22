@@ -390,7 +390,7 @@ describe WorkingHours::Config do
 
     it 'computes an optimized version' do
       expect(subject).to eq({
-          :working_hours => [nil, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {}],
+          :working_hours => [{}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {32400=>61200}, {}],
           :holiday_hours => {},
           :holidays => Set.new([]),
           :time_zone => ActiveSupport::TimeZone['UTC']
