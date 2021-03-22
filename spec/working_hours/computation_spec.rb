@@ -32,10 +32,24 @@ describe WorkingHours::Computation do
       expect(add_days(time, 1)).to eq(Date.new(2014, 4, 9)) # Wednesday
     end
 
+    it 'skips non worked days when origin is not worked' do
+      time = Date.new(2014, 4, 8) # Tuesday
+      WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}, thu: {'09:00' => '17:00'}, sun: {'09:00' => '17:00'}}
+      expect(add_days(time, 1)).to eq(Date.new(2014, 4, 10)) # Thursday
+      expect(add_days(time, -1)).to eq(Date.new(2014, 4, 6)) # Sunday
+    end
+
     it 'skips holidays' do
       time = Date.new(2014, 4, 7) # Monday
       WorkingHours::Config.holidays = [Date.new(2014, 4, 8)] # Tuesday
       expect(add_days(time, 1)).to eq(Date.new(2014, 4, 9)) # Wednesday
+    end
+
+    it 'skips holidays when origin is holiday' do
+      time = Date.new(2014, 4, 9) # Wednesday
+      WorkingHours::Config.holidays = [time] # Wednesday
+      expect(add_days(time, 1)).to eq(Date.new(2014, 4, 11)) # Friday
+      expect(add_days(time, -1)).to eq(Date.new(2014, 4, 7)) # Monday
     end
 
     it 'skips holidays and non worked days' do
@@ -43,6 +57,12 @@ describe WorkingHours::Computation do
       WorkingHours::Config.holidays = [Date.new(2014, 4, 9)] # Wednesday
       WorkingHours::Config.working_hours = {mon: {'09:00' => '17:00'}, wed: {'09:00' => '17:00'}}
       expect(add_days(time, 3)).to eq(Date.new(2014, 4, 21))
+    end
+
+    it 'returns the original value when adding 0 days' do
+      time = Date.new(2014, 4, 7)
+      WorkingHours::Config.holidays = [time]
+      expect(add_days(time, 0)).to eq(time)
     end
 
     it 'accepts time given from any time zone' do
@@ -126,6 +146,12 @@ describe WorkingHours::Computation do
         expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 26, 17, 58))
       end
     end
+
+    it 'honors miliseconds in the base time and increment (but return rounded result)' do
+      # Rounding the base time or increments before the end would yield a wrong result
+      time = Time.utc(1991, 11, 15, 16, 59, 42.25) # +250ms
+      expect(add_seconds(time, 120.4)).to eq(Time.utc(1991, 11, 18, 9, 1, 43))
+    end
   end
 
   describe '#advance_to_working_time' do
@@ -164,10 +190,41 @@ describe WorkingHours::Computation do
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
 
+<<<<<<< HEAD
     it 'jumps outside holiday hours', :focus do
       WorkingHours::Config.working_hours = { fri: { '08:00' => '18:00' } }
       WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
       expect(advance_to_working_time(Time.utc(2019, 12, 27, 9))).to eq(Time.utc(2019, 12, 27, 10))
+=======
+    it 'do not leak nanoseconds when advancing' do
+      expect(advance_to_working_time(Time.utc(2014, 4, 7, 5, 0, 0, 123456.789))).to eq(Time.utc(2014, 4, 7, 9, 0, 0, 0))
+    end
+
+    it 'returns correct hour during positive time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'09:00' => '17:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      from = Time.new(2020, 3, 29, 0, 0, 0, "+01:00")
+      expect(from.utc_offset).to eq(3600)
+      res = advance_to_working_time(from)
+      expect(res).to eq(Time.new(2020, 3, 29, 9, 0, 0, "+02:00"))
+      expect(res.utc_offset).to eq(7200)
+      # starting from wrong time-zone
+      expect(advance_to_working_time(Time.new(2020, 3, 29, 5, 0, 0, "+01:00"))).to eq(Time.new(2020, 3, 29, 9, 0, 0, "+02:00"))
+      expect(advance_to_working_time(Time.new(2020, 3, 29, 1, 0, 0, "+02:00"))).to eq(Time.new(2020, 3, 29, 9, 0, 0, "+02:00"))
+    end
+
+    it 'returns correct hour during negative time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'09:00' => '17:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      from = Time.new(2020, 10, 25, 0, 0, 0, "+02:00")
+      expect(from.utc_offset).to eq(7200)
+      res = advance_to_working_time(from)
+      expect(res).to eq(Time.new(2020, 10, 25, 9, 0, 0, "+01:00"))
+      expect(res.utc_offset).to eq(3600)
+      # starting from wrong time-zone
+      expect(advance_to_working_time(Time.new(2020, 10, 25, 4, 0, 0, "+02:00"))).to eq(Time.new(2020, 10, 25, 9, 0, 0, "+01:00"))
+      expect(advance_to_working_time(Time.new(2020, 10, 25, 1, 0, 0, "+01:00"))).to eq(Time.new(2020, 10, 25, 9, 0, 0, "+01:00"))
+>>>>>>> upstream/master
     end
   end
 
@@ -235,7 +292,7 @@ describe WorkingHours::Computation do
       end
 
       let(:monday_morning) { Time.utc(2014, 4, 7, 0) }
-      let(:monday_closing) { Time.utc(2014, 4, 7) + 86399.999999 }
+      let(:monday_closing) { Time.utc(2014, 4, 7) + WorkingHours::Config::MIDNIGHT }
       let(:tuesday_closing) { Time.utc(2014, 4, 8, 17) }
       let(:sunday) { Time.utc(2014, 4, 6, 17) }
 
@@ -249,6 +306,11 @@ describe WorkingHours::Computation do
 
       it 'moves over midnight' do
         expect(advance_to_closing_time(sunday)).to eq(monday_closing)
+      end
+
+      it 'give precise computation with nothing other than miliseconds' do
+        pending "iso8601 is not precise enough on AS < 4" if ActiveSupport::VERSION::MAJOR <= 4
+        expect(advance_to_closing_time(monday_morning).iso8601(25)).to eq("2014-04-07T23:59:59.9999990000000000000000000Z")
       end
     end
 
@@ -267,6 +329,7 @@ describe WorkingHours::Computation do
       expect(advance_to_closing_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
 
+<<<<<<< HEAD
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
@@ -281,6 +344,36 @@ describe WorkingHours::Computation do
         WorkingHours::Config.holiday_hours = { '2019-12-26' => { '10:00' => '21:00' } }
         expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 26, 21))
       end
+=======
+    it 'do not leak nanoseconds when advancing' do
+      expect(advance_to_closing_time(Time.utc(2014, 4, 7, 5, 0, 0, 123456.789))).to eq(Time.utc(2014, 4, 7, 17, 0, 0, 0))
+    end
+
+    it 'returns correct hour during positive time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'09:00' => '17:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      from = Time.new(2020, 3, 29, 0, 0, 0, "+01:00")
+      expect(from.utc_offset).to eq(3600)
+      res = advance_to_closing_time(from)
+      expect(res).to eq(Time.new(2020, 3, 29, 17, 0, 0, "+02:00"))
+      expect(res.utc_offset).to eq(7200)
+      # starting from wrong time-zone
+      expect(advance_to_closing_time(Time.new(2020, 3, 29, 5, 0, 0, "+01:00"))).to eq(Time.new(2020, 3, 29, 17, 0, 0, "+02:00"))
+      expect(advance_to_closing_time(Time.new(2020, 3, 29, 1, 0, 0, "+02:00"))).to eq(Time.new(2020, 3, 29, 17, 0, 0, "+02:00"))
+    end
+
+    it 'returns correct hour during negative time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'09:00' => '17:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      from = Time.new(2020, 10, 25, 0, 0, 0, "+02:00")
+      expect(from.utc_offset).to eq(7200)
+      res = advance_to_closing_time(from)
+      expect(res).to eq(Time.new(2020, 10, 25, 17, 0, 0, "+01:00"))
+      expect(res.utc_offset).to eq(3600)
+      # starting from wrong time-zone
+      expect(advance_to_closing_time(Time.new(2020, 10, 25, 4, 0, 0, "+02:00"))).to eq(Time.new(2020, 10, 25, 17, 0, 0, "+01:00"))
+      expect(advance_to_closing_time(Time.new(2020, 10, 25, 1, 0, 0, "+01:00"))).to eq(Time.new(2020, 10, 25, 17, 0, 0, "+01:00"))
+>>>>>>> upstream/master
     end
   end
 
@@ -386,6 +479,32 @@ describe WorkingHours::Computation do
     it 'returns time in config zone' do
       WorkingHours::Config.time_zone = 'Tokyo'
       expect(return_to_working_time(Time.new(2014, 4, 7, 1, 0, 0)).zone).to eq('JST')
+    end
+
+    it 'returns correct hour during positive time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'00:00' => '01:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      from = Time.new(2020, 3, 29, 9, 0, 0, "+02:00")
+      expect(from.utc_offset).to eq(7200)
+      res = return_to_working_time(from)
+      expect(res).to eq(Time.new(2020, 3, 29, 1, 0, 0, "+01:00"))
+      expect(res.utc_offset).to eq(3600)
+      # starting from wrong time-zone
+      expect(return_to_working_time(Time.new(2020, 3, 29, 2, 0, 0, "+02:00"))).to eq(Time.new(2020, 3, 29, 1, 0, 0, "+01:00"))
+      expect(return_to_working_time(Time.new(2020, 3, 29, 9, 0, 0, "+01:00"))).to eq(Time.new(2020, 3, 29, 1, 0, 0, "+01:00"))
+    end
+
+    it 'returns correct hour during negative time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'00:00' => '01:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      from = Time.new(2020, 10, 25, 9, 0, 0, "+01:00")
+      expect(from.utc_offset).to eq(3600)
+      res = return_to_working_time(from)
+      expect(res).to eq(Time.new(2020, 10, 25, 1, 0, 0, "+02:00"))
+      expect(res.utc_offset).to eq(7200)
+      # starting from wrong time-zone
+      expect(return_to_working_time(Time.new(2020, 10, 25, 9, 0, 0, "+02:00"))).to eq(Time.new(2020, 10, 25, 1, 0, 0, "+02:00"))
+      expect(return_to_working_time(Time.new(2020, 10, 25, 1, 0, 0, "+01:00"))).to eq(Time.new(2020, 10, 25, 1, 0, 0, "+02:00"))
     end
   end
 
@@ -569,6 +688,78 @@ describe WorkingHours::Computation do
         Time.new(2014, 4, 7, 1, 0, 0, "-09:00"), # Monday 10am in UTC
         Time.new(2014, 4, 7, 15, 0, 0, "-04:00"), # Monday 7pm in UTC
       )).to eq(7.hours)
+    end
+
+    it 'uses precise computation to avoid useless loops' do
+      # +200 usec on each time, using floating point would cause
+      # precision issues and require several iterations
+      expect(self).to receive(:advance_to_working_time).twice.and_call_original
+      expect(working_time_between(
+        Time.utc(2014, 4, 7, 5, 0, 0, 200),
+        Time.utc(2014, 4, 7, 15, 0, 0, 200),
+      )).to eq(6.hours)
+    end
+
+    it 'works across positive time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'08:00' => '21:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      expect(working_time_between(
+        Time.utc(2020, 3, 29, 1, 0),
+        Time.utc(2020, 3, 30, 0, 0),
+      )).to eq(13.hours)
+    end
+
+    it 'works across negative time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'08:00' => '21:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      expect(working_time_between(
+        Time.utc(2019, 10, 27, 1, 0),
+        Time.utc(2019, 10, 28, 0, 0),
+      )).to eq(13.hours)
+    end
+
+    it 'works across time shifts + midnight' do
+      WorkingHours::Config.working_hours = {sun: {'00:00' => '24:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      expect(working_time_between(
+        Time.utc(2020, 10, 24, 22, 0),
+        Time.utc(2020, 10, 25, 23, 0),
+      )).to eq(24.hours)
+    end
+
+    it 'works across multiple time shifts' do
+      WorkingHours::Config.working_hours = {sun: {'08:00' => '21:00'}}
+      WorkingHours::Config.time_zone = 'Paris'
+      expect(working_time_between(
+        Time.utc(2002, 10, 27, 6, 0),
+        Time.utc(2021, 10, 30, 0, 0),
+      )).to eq(12896.hours)
+    end
+
+    it 'do not cause infinite loop if the time is not advancing properly' do
+      # simulate some computation/precision error
+      expect(self).to receive(:advance_to_working_time).twice do |time|
+        time.change(hour: 9) - 0.0001
+      end
+      expect { working_time_between(
+        Time.utc(2014, 4, 7, 5, 0, 0),
+        Time.utc(2014, 4, 7, 15, 0, 0),
+      ) }.to raise_error(RuntimeError, /Invalid loop detected in working_time_between \(from=2014-04-07T08:59:59.999/)
+    end
+
+    # generates two times with +0ms, +250ms, +500ms, +750ms and +1s
+    # then for each combination compare the result with a ruby diff
+    context 'with precise miliseconds timings' do
+      reference = Time.utc(2014, 4, 7, 10)
+      0.step(1.0, 0.25) do |offset1|
+        0.step(1.0, 0.25) do |offset2|
+          from = reference + offset1
+          to = reference + offset2
+          it "returns expected value (#{(to - from).round}) for #{offset1} — #{offset2} interval" do
+            expect(working_time_between(from, to)).to eq((to - from).round)
+          end
+        end
+      end
     end
   end
 end

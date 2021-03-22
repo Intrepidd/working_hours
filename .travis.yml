@@ -1,21 +1,26 @@
 language: ruby
+dist: bionic
 rvm:
-  - 2.4.9
-  - 2.5.7
-  - 2.6.5
+  - 2.4.10
+  - 2.5.8
+  - 2.6.6
+  - 2.7.2
+  - 3.0.0
+  - jruby-9.2.14.0
 gemfile:
   - gemfiles/Gemfile.activesupport-4.x
   - gemfiles/Gemfile.activesupport-5.x
   - gemfiles/Gemfile.activesupport-6.x
 jobs:
   exclude:
-    - rvm: 2.4.9
+    - rvm: 2.4.10
       gemfile: gemfiles/Gemfile.activesupport-6.x
+    - rvm: 2.7.2
+      gemfile: gemfiles/Gemfile.activesupport-4.x
+    - rvm: 3.0.0
+      gemfile: gemfiles/Gemfile.activesupport-4.x
   include:
     - rvm: ruby-head
-      gemfile: gemfiles/Gemfile.activesupport-edge
-  include:
-    - rvm: jruby-head
       gemfile: gemfiles/Gemfile.activesupport-edge
   allow_failures:
     - gemfile: gemfiles/Gemfile.activesupport-edge

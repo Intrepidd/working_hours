@@ -1,6 +1,28 @@
 # Unreleased
 
-[Compare master with v1.1.4](https://github.com/intrepidd/working_hours/compare/v1.1.4...master)
+[Compare master with v1.3.1](https://github.com/intrepidd/working_hours/compare/v1.3.1...master)
+
+# v1.3.2
+* Improve support for time shifts - [#46](https://github.com/Intrepidd/working_hours/pull/46)
+
+# v1.3.1
+* Improve computation accuracy in `advance_to_working_time` and `working_time_between` by using more exact (integer-based) time operations instead of floating point numbers - [#44](https://github.com/Intrepidd/working_hours/pull/44)
+* Raise an exception when we detect an infinite loops in `advance_to_working_time` to improve resilience and make debugging easier - [#44](https://github.com/Intrepidd/working_hours/pull/44)
+* Use a Rational number for the midnight value to avoid leaking sub-nanoseconds residue because of floating point accuracy - [#44](https://github.com/Intrepidd/working_hours/pull/44)
+
+# v1.3.0
+* Improve supports for fractional seconds in input times by only rounding results at the end - [#42](https://github.com/Intrepidd/working_hours/issues/42) [#43](https://github.com/Intrepidd/working_hours/pull/43)
+* Increase code safety by always initializing an empty hash for each day of the week in the precompiled config (inspired by [#35](https://github.com/Intrepidd/working_hours/pull/35)
+
+# v1.2.0
+* Drop support for ruby 2.0, 2.1, 2.2 and 2.3
+* Drop support for jruby 1.7 and 9.0
+* Drop support for ActiveSupport 3.x
+* Add support for jruby 9.2
+* Add support for ruby 2.5, 2.6 and 2.7
+* Add support for ActiveSupport 5.x and 6.x
+* Fix day computations when origin is a holiday or a non worked day - [#39](https://github.com/Intrepidd/working_hours/pull/39)
+
 
 # v1.1.4
 * Fix thread safety - [#36](https://github.com/Intrepidd/working_hours/pull/36)

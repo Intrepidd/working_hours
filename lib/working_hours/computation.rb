@@ -5,8 +5,12 @@ module WorkingHours
   module Computation
 
     def add_days origin, days, config: nil
+      return origin if days.zero?
+
       config ||= wh_config
       time = in_config_zone(origin, config: config)
+      time += (days <=> 0).day until working_day?(time, config: config)
+
       while days > 0
         time += 1.day
         days -= 1 if working_day?(time, config: config)
@@ -30,7 +34,7 @@ module WorkingHours
 
     def add_seconds origin, seconds, config: nil
       config ||= wh_config
-      time = in_config_zone(origin, config: config).round
+      time = in_config_zone(origin, config: config)
       while seconds > 0
         # roll to next business period
         time = advance_to_working_time(time, config: config)
@@ -68,7 +72,7 @@ module WorkingHours
 
     def advance_to_working_time time, config: nil
       config ||= wh_config
-      time = in_config_zone(time, config: config).round
+      time = in_config_zone(time, config: config)
       loop do
         # skip holidays and weekends
         while not working_day?(time, config: config)
@@ -76,9 +80,9 @@ module WorkingHours
         end
         # find first working range after time
         time_in_day = time.seconds_since_midnight
-        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday] || {}).each do |from, to|
+        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday]).each do |from, to|
           return time if time_in_day >= from and time_in_day < to
-          return time + (from - time_in_day) if from >= time_in_day
+          return move_time_of_day(time, from) if from >= time_in_day
         end
         # if none is found, go to next day and loop
         time = (time + 1.day).beginning_of_day
@@ -87,7 +91,7 @@ module WorkingHours
 
     def advance_to_closing_time time, config: nil
       config ||= wh_config
-      time = in_config_zone(time, config: config).round
+      time = in_config_zone(time, config: config)
       loop do
         # skip holidays and weekends
         while not working_day?(time, config: config)
@@ -96,12 +100,11 @@ module WorkingHours
         # find next working range after time
         time_in_day = time.seconds_since_midnight
         time = time.beginning_of_day
-        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday] || {}).each do |from, to|
-          return time + to if time_in_day >= from and time_in_day < to
-          return time + to if from >= time_in_day
+        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday]).each do |from, to|
+          return move_time_of_day(time, to) if time_in_day < to
         end
         # if none is found, go to next day and loop
-        time = time + 1.day
+        time = (time + 1.day).beginning_of_day
       end
     end
 
@@ -119,7 +122,7 @@ module WorkingHours
 
     def return_to_exact_working_time time, config: nil
       config ||= wh_config
-      time = in_config_zone(time, config: config).round
+      time = in_config_zone(time, config: config)
       loop do
         # skip holidays and weekends
         while not working_day?(time, config: config)
@@ -127,10 +130,10 @@ module WorkingHours
         end
         # find last working range before time
         time_in_day = time.seconds_since_midnight
-        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday] || {}).reverse_each do |from, to|
+        (config[:holiday_hours][time.to_date.to_s] || config[:working_hours][time.wday]).reverse_each do |from, to|
           # round is used to suppress miliseconds hack from `end_of_day`
           return time if time_in_day > from and time_in_day <= to
-          return (time - (time_in_day - to)) if to <= time_in_day
+          return move_time_of_day(time, to) if to <= time_in_day
         end
         # if none is found, go to previous day and loop
         time = (time - 1.day).end_of_day
@@ -176,29 +179,51 @@ module WorkingHours
         -working_time_between(to, from, config: config)
       else
         from = advance_to_working_time(in_config_zone(from, config: config))
-        to = in_config_zone(to, config: config).round
+        to = in_config_zone(to, config: config)
         distance = 0
         while from < to
+          from_was = from
           # look at working ranges
           time_in_day = from.seconds_since_midnight
           config[:working_hours][from.wday].each do |begins, ends|
             if time_in_day >= begins and time_in_day < ends
-              # take all we can
-              take = [ends - time_in_day, to - from].min
-              # advance time
-              from += take
-              # increase counter
-              distance += take
+              if (to - from) > (ends - time_in_day)
+                # take all the range and continue
+                distance += (ends - time_in_day)
+                from = move_time_of_day(from, ends)
+              else
+                # take only what's needed and stop
+                distance += (to - from)
+                from = to
+              end
             end
           end
           # roll to next business period
           from = advance_to_working_time(from, config: config)
+          raise "Invalid loop detected in working_time_between (from=#{from.iso8601(12)}, to=#{to.iso8601(12)}, distance=#{distance}, config=#{config}), please open an issue ;)" unless from > from_was
         end
         distance.round # round up to supress miliseconds introduced by 24:00 hack
       end
     end
 
     private
+
+    # Changes the time of the day to match given time (in seconds since midnight)
+    # preserving nanosecond prevision (rational number) and honoring time shifts
+    #
+    # This replaces the previous implementation which was:
+    #   time.beginning_of_day + seconds
+    # (because this one would shift hours during time shifts days)
+    def move_time_of_day time, seconds
+      # return time.beginning_of_day + seconds
+      hour = (seconds / 3600).to_i
+      seconds %= 3600
+      minutes = (seconds / 60).to_i
+      seconds %= 60
+      # sec/usec separation is required for ActiveSupport <= 5.1
+      usec = ((seconds % 1) * 10**6)
+      time.change(hour: hour, min: minutes, sec: seconds.to_i, usec: usec)
+    end
 
     def wh_config
       WorkingHours::Config.precompiled

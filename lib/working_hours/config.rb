@@ -6,6 +6,7 @@ module WorkingHours
   class Config
     TIME_FORMAT = /\A([0-2][0-9])\:([0-5][0-9])(?:\:([0-5][0-9]))?\z/
     DAYS_OF_WEEK = [:sun, :mon, :tue, :wed, :thu, :fri, :sat]
+    MIDNIGHT = Rational('86399.999999')
 
     class << self
       def working_hours
@@ -60,9 +61,8 @@ module WorkingHours
           validate_holiday_hours! config[:holiday_hours]
           validate_holidays! config[:holidays]
           validate_time_zone! config[:time_zone]
-          compiled = { working_hours: [], holiday_hours: {} }
+          compiled = { working_hours: Array.new(7) { Hash.new }, holiday_hours: {} }
           working_hours.each do |day, hours|
-            compiled[:working_hours][DAYS_OF_WEEK.index(day)] = {}
             hours.each do |start, finish|
               compiled[:working_hours][DAYS_OF_WEEK.index(day)][compile_time(start)] = compile_time(finish)
             end
@@ -142,7 +142,7 @@ module WorkingHours
         sec = time[TIME_FORMAT,3].to_i
         time = hour * 3600 + min * 60 + sec
         # Converts 24:00 to 23:59:59.999999
-        return 86399.999999 if time == 86400
+        return MIDNIGHT if time == 86400
         time
       end
 
