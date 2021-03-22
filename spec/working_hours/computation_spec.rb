@@ -111,7 +111,7 @@ describe WorkingHours::Computation do
       expect(add_seconds(time, 120)).to eq(Time.utc(1991, 11, 18, 9, 1, 42))
     end
 
-    it 'Calls precompiled only once' do
+    it 'calls precompiled only once' do
       precompiled = WorkingHours::Config.precompiled
       expect(WorkingHours::Config).to receive(:precompiled).once.and_return(precompiled) # in_config_zone and add_seconds
       time = Time.utc(1991, 11, 15, 16, 59, 42) # Friday
@@ -562,7 +562,7 @@ describe WorkingHours::Computation do
         expect(in_working_hours?(Time.utc(2019, 12, 26, 9))).to be(true)
         expect(in_working_hours?(Time.utc(2019, 12, 27, 19))).to be(true)
       end
-  
+
       it 'returns false outside working hours' do
         expect(in_working_hours?(Time.utc(2019, 12, 26, 7))).to be(false)
         expect(in_working_hours?(Time.utc(2019, 12, 27, 9))).to be(false)
@@ -757,6 +757,20 @@ describe WorkingHours::Computation do
             expect(working_time_between(from, to)).to eq((to - from).round)
           end
         end
+      end
+    end
+
+    context 'with holiday hours' do
+      before do
+        WorkingHours::Config.working_hours = { mon: { '08:00' => '18:00' }, tue: { '08:00' => '18:00' } }
+        WorkingHours::Config.holiday_hours = { '2014-04-07' => { '10:00' => '18:00' } }
+      end
+
+      it 'includes holiday hours' do
+        expect(working_time_between(
+          Time.utc(2014, 4, 7, 8),
+          Time.utc(2014, 4, 7, 9)
+        )).to eq(0)
       end
     end
   end
