@@ -211,7 +211,7 @@ describe WorkingHours::Computation do
       expect(advance_to_working_time(Time.new(2014, 4, 7, 0, 0, 0)).zone).to eq('JST')
     end
 
-    it 'jumps outside holiday hours', :focus do
+    it 'jumps outside holiday hours' do
       WorkingHours::Config.working_hours = { fri: { '08:00' => '18:00' } }
       WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
       expect(advance_to_working_time(Time.utc(2019, 12, 27, 9))).to eq(Time.utc(2019, 12, 27, 10))
