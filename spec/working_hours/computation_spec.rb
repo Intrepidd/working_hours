@@ -133,17 +133,38 @@ describe WorkingHours::Computation do
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
-        WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
       end
 
-      it 'adds working seconds' do
-        time = Time.utc(2019, 12, 27, 9)
-        expect(add_seconds(time, 120)).to eq(Time.utc(2019, 12, 27, 10, 2))
+      context 'with a later starting hour' do
+        before do
+          WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
+        end
+
+        it 'adds working seconds' do
+          time = Time.utc(2019, 12, 27, 9)
+          expect(add_seconds(time, 120)).to eq(Time.utc(2019, 12, 27, 10, 2))
+        end
+
+        it 'removes working seconds' do
+          time = Time.utc(2019, 12, 27, 9)
+          expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 26, 17, 58))
+        end
       end
 
-      it 'removes working seconds' do
-        time = Time.utc(2019, 12, 27, 9)
-        expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 26, 17, 58))
+      context 'with an earlier ending hour' do
+        before do
+          WorkingHours::Config.holiday_hours = { '2019-12-27' => { '08:00' => '17:00' } }
+        end
+
+        it 'adds working seconds' do
+          time = Time.utc(2019, 12, 27, 17, 59)
+          expect(add_seconds(time, 120)).to eq(Time.utc(2020, 1, 2, 8, 2))
+        end
+
+        it 'removes working seconds' do
+          time = Time.utc(2019, 12, 27, 18)
+          expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 27, 16, 58))
+        end
       end
     end
 
@@ -763,14 +784,34 @@ describe WorkingHours::Computation do
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { mon: { '08:00' => '18:00' }, tue: { '08:00' => '18:00' } }
-        WorkingHours::Config.holiday_hours = { '2014-04-07' => { '10:00' => '18:00' } }
+        WorkingHours::Config.holiday_hours = { '2014-04-07' => { '10:00' => '12:00', '14:00' => '18:00' } }
       end
 
-      it 'includes holiday hours' do
-        expect(working_time_between(
-          Time.utc(2014, 4, 7, 8),
-          Time.utc(2014, 4, 7, 9)
-        )).to eq(0)
+      context 'time is before the start of holiday hours' do
+        it 'does not count holiday hours as working time' do
+          expect(working_time_between(
+            Time.utc(2014, 4, 7, 8),
+            Time.utc(2014, 4, 7, 9)
+          )).to eq(0)
+        end
+      end
+
+      context 'time is between holiday hours' do
+        it 'does not count holiday hours as working time' do
+          expect(working_time_between(
+            Time.utc(2014, 4, 7, 13),
+            Time.utc(2014, 4, 7, 13, 30)
+          )).to eq(0)
+        end
+      end
+
+      context 'time is after the end of holiday hours' do
+        it 'does not count holiday hours as working time' do
+          expect(working_time_between(
+            Time.utc(2014, 4, 7, 19),
+            Time.utc(2014, 4, 7, 20)
+          )).to eq(0)
+        end
       end
     end
   end
