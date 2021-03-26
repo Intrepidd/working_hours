@@ -254,17 +254,12 @@ module WorkingHours
         next unless time.to_date == date
   
         hours.each do |start_time, end_time|
-          if hour_to_seconds(time) >= start_time && hour_to_seconds(time) <= end_time
+          if time.seconds_since_midnight >= start_time && time.seconds_since_midnight <= end_time
             matched_hours << { start_time => end_time}
           end
         end
       end
       matched_hours.any?
-    end
-
-    def hour_to_seconds(time)
-      start_of_day = time.at_beginning_of_day
-      time.to_i - start_of_day.to_i
     end
   end
 end
