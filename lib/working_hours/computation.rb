@@ -143,7 +143,7 @@ module WorkingHours
       time = in_config_zone(time, config: config)
 
       (config[:working_hours][time.wday].present? && !config[:holidays].include?(time.to_date)) ||
-        holiday_hour?(time, config: config)
+        config[:holiday_hours].include?(time.to_date)
     end
 
     def in_working_hours? time, config: nil
@@ -246,20 +246,6 @@ module WorkingHours
       when DateTime then time.to_datetime
       else time
       end
-    end
-
-    def holiday_hour?(time, config: nil)
-      matched_hours = []
-      config[:holiday_hours].each do |date, hours|
-        next unless time.to_date == date
-  
-        hours.each do |start_time, end_time|
-          if time.seconds_since_midnight >= start_time && time.seconds_since_midnight <= end_time
-            matched_hours << { start_time => end_time}
-          end
-        end
-      end
-      matched_hours.any?
     end
   end
 end
