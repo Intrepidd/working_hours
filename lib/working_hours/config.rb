@@ -177,13 +177,11 @@ module WorkingHours
         end
       end
 
-      def validate_holiday_hours! week
-        begin
-          (week.keys.select { |k| Date.parse(k) })
-        rescue => ex
-          raise InvalidConfiguration.new "Invalid day identifier(s): Must be in the format 'YYYY-MM-DD'"
+      def validate_holiday_hours! days
+        if (invalid_keys = (days.keys.select{ |day| day.class.to_s != 'Date' })).any?
+          raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be a Date object"
         end
-        week.each do |day, hours|
+        days.each do |day, hours|
           if not hours.is_a? Hash
             raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
           elsif hours.empty?

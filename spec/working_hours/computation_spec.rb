@@ -137,7 +137,7 @@ describe WorkingHours::Computation do
 
       context 'with a later starting hour' do
         before do
-          WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
+          WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '10:00' => '18:00' } }
         end
 
         it 'adds working seconds' do
@@ -153,7 +153,7 @@ describe WorkingHours::Computation do
 
       context 'with an earlier ending hour' do
         before do
-          WorkingHours::Config.holiday_hours = { '2019-12-27' => { '08:00' => '17:00' } }
+          WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '08:00' => '17:00' } }
         end
 
         it 'adds working seconds' do
@@ -213,7 +213,7 @@ describe WorkingHours::Computation do
 
     it 'jumps outside holiday hours' do
       WorkingHours::Config.working_hours = { fri: { '08:00' => '18:00' } }
-      WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '18:00' } }
+      WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '10:00' => '18:00' } }
       expect(advance_to_working_time(Time.utc(2019, 12, 27, 9))).to eq(Time.utc(2019, 12, 27, 10))
     end
 
@@ -355,12 +355,12 @@ describe WorkingHours::Computation do
       end
 
       it 'takes into account reduced holiday closing' do
-        WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '17:00' } }
+        WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '10:00' => '17:00' } }
         expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 27, 17))
       end
 
       it 'takes into account extended holiday closing' do
-        WorkingHours::Config.holiday_hours = { '2019-12-26' => { '10:00' => '21:00' } }
+        WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 26) => { '10:00' => '21:00' } }
         expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 26, 21))
       end
     end
@@ -576,7 +576,7 @@ describe WorkingHours::Computation do
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '18:00' } }
-        WorkingHours::Config.holiday_hours = { '2019-12-27' => { '10:00' => '20:00' } }
+        WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '10:00' => '20:00' } }
       end
 
       it 'returns true during working hours' do
@@ -784,7 +784,7 @@ describe WorkingHours::Computation do
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { mon: { '08:00' => '18:00' }, tue: { '08:00' => '18:00' } }
-        WorkingHours::Config.holiday_hours = { '2014-04-07' => { '10:00' => '12:00', '14:00' => '18:00' } }
+        WorkingHours::Config.holiday_hours = { Date.new(2014, 4, 7) => { '10:00' => '12:00', '14:00' => '18:00' } }
       end
 
       context 'time is before the start of holiday hours' do
