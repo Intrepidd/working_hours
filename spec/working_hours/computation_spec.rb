@@ -166,6 +166,23 @@ describe WorkingHours::Computation do
           expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 27, 16, 58))
         end
       end
+
+      context 'with an earlier starting time in the second set of hours within a day' do
+        before do
+          WorkingHours::Config.working_hours = { thu: { '08:00' => '18:00' }, fri: { '08:00' => '12:00', '13:00' => '18:00' } }
+          WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '08:00' => '12:00', '14:00' => '18:00' } }
+        end
+
+        it 'adds working seconds' do
+          time = Time.utc(2019, 12, 27, 12, 59)
+          expect(add_seconds(time, 120)).to eq(Time.utc(2019, 12, 27, 14, 2))
+        end
+
+        it 'removes working seconds' do
+          time = Time.utc(2019, 12, 27, 14)
+          expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 27, 11, 58))
+        end
+      end
     end
 
     it 'honors miliseconds in the base time and increment (but return rounded result)' do
