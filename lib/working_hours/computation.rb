@@ -80,7 +80,8 @@ module WorkingHours
         end
         # find first working range after time
         time_in_day = time.seconds_since_midnight
-        (config[:holiday_hours][time.to_date] || config[:working_hours][time.wday]).each do |from, to|
+        
+        working_hours_for(time, config: config).each do |from, to|
           return time if time_in_day >= from and time_in_day < to
           return move_time_of_day(time, from) if from >= time_in_day
         end
@@ -99,7 +100,7 @@ module WorkingHours
         end
         # find next working range after time
         time_in_day = time.seconds_since_midnight
-        (config[:holiday_hours][time.to_date] || config[:working_hours][time.wday]).each do |from, to|
+        working_hours_for(time, config: config).each do |from, to|
           return move_time_of_day(time, to) if time_in_day < to
         end
         # if none is found, go to next day and loop
@@ -129,7 +130,7 @@ module WorkingHours
         end
         # find last working range before time
         time_in_day = time.seconds_since_midnight
-        (config[:holiday_hours][time.to_date] || config[:working_hours][time.wday]).reverse_each do |from, to|
+        working_hours_for(time, config: config).reverse_each do |from, to|
           return time if time_in_day > from and time_in_day <= to
           return move_time_of_day(time, to) if to <= time_in_day
         end
@@ -151,7 +152,7 @@ module WorkingHours
       time = in_config_zone(time, config: config)
       return false if not working_day?(time, config: config)
       time_in_day = time.seconds_since_midnight
-      (config[:holiday_hours][time.to_date] || config[:working_hours][time.wday]).each do |from, to|
+      working_hours_for(time, config: config).each do |from, to|
         return true if time_in_day >= from and time_in_day < to
       end
       false
@@ -246,6 +247,10 @@ module WorkingHours
       when DateTime then time.to_datetime
       else time
       end
+    end
+
+    def working_hours_for(time, config:)
+      config[:holiday_hours][time.to_date] || config[:working_hours][time.wday]
     end
   end
 end

@@ -14,7 +14,7 @@ module WorkingHours
       end
 
       def working_hours=(val)
-        validate_hours! val, type: :working_hours
+        validate_working_hours! val
         config[:working_hours] = val
         global_config[:working_hours] = val
         config.delete :precompiled
@@ -36,7 +36,7 @@ module WorkingHours
       end
 
       def holiday_hours=(val)
-        validate_hours! val, type: :holiday_hours
+        validate_holiday_hours! val
         config[:holiday_hours] = val
         global_config[:holiday_hours] = val
         config.delete :precompiled
@@ -57,8 +57,8 @@ module WorkingHours
         end
 
         config[:precompiled] ||= begin
-          validate_hours! config[:working_hours], type: :working_hours
-          validate_hours! config[:holiday_hours], type: :holiday_hours
+          validate_working_hours! config[:working_hours]
+          validate_holiday_hours! config[:holiday_hours]
           validate_holidays! config[:holidays]
           validate_time_zone! config[:time_zone]
           compiled = { working_hours: Array.new(7) { Hash.new }, holiday_hours: {} }
@@ -146,14 +146,7 @@ module WorkingHours
         time
       end
 
-      def validate_hours! dates, type:
-        case type
-        when :working_hours
-          validate_working_hours! dates
-        when :holiday_hours
-          validate_holiday_hours! dates
-        end
-        
+      def validate_hours! dates
         dates.each do |day, hours|
           if not hours.is_a? Hash
             raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
@@ -185,12 +178,14 @@ module WorkingHours
         if (invalid_keys = (week.keys - DAYS_OF_WEEK)).any?
           raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be 3 letter symbols"
         end
+        validate_hours!(week)
       end
 
       def validate_holiday_hours! days
-        if (invalid_keys = (days.keys.select{ |day| day.class.to_s != 'Date' })).any?
+        if (invalid_keys = (days.keys.reject{ |day| day.is_a?(Date) })).any?
           raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be a Date object"
         end
+        validate_hours!(days)
       end
 
       def validate_holidays! holidays
