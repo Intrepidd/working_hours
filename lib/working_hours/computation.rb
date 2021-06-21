@@ -40,7 +40,7 @@ module WorkingHours
         time = advance_to_working_time(time, config: config)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
-        config[:working_hours][time.wday].each do |from, to|
+        working_hours_for(time, config: config).each do |from, to|
           if time_in_day >= from and time_in_day < to
             # take all we can
             take = [to - time_in_day, seconds].min
@@ -56,7 +56,8 @@ module WorkingHours
         time = return_to_exact_working_time(time, config: config)
         # look at working ranges
         time_in_day = time.seconds_since_midnight
-        config[:working_hours][time.wday].reverse_each do |from, to|
+        
+        working_hours_for(time, config: config).reverse_each do |from, to|
           if time_in_day > from and time_in_day <= to
             # take all we can
             take = [time_in_day - from, -seconds].min

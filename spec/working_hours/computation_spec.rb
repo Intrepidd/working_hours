@@ -149,6 +149,13 @@ describe WorkingHours::Computation do
           time = Time.utc(2019, 12, 27, 9)
           expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 26, 17, 58))
         end
+
+        context 'working back from working hours' do
+          it 'moves to the previous working day' do
+            time = Time.utc(2019, 12, 27, 11)
+            expect(add_seconds(time, -2.hours)).to eq(Time.utc(2019, 12, 26, 17))
+          end
+        end
       end
 
       context 'with an earlier ending hour' do
@@ -164,6 +171,13 @@ describe WorkingHours::Computation do
         it 'removes working seconds' do
           time = Time.utc(2019, 12, 27, 18)
           expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 27, 16, 58))
+        end
+
+        context 'working forward from working hours' do
+          it 'moves to the next working day' do
+            time = Time.utc(2019, 12, 27, 16)
+            expect(add_seconds(time, 2.hours)).to eq(Time.utc(2020, 1, 2, 9))
+          end
         end
       end
 
@@ -181,6 +195,20 @@ describe WorkingHours::Computation do
         it 'removes working seconds' do
           time = Time.utc(2019, 12, 27, 14)
           expect(add_seconds(time, -120)).to eq(Time.utc(2019, 12, 27, 11, 58))
+        end
+
+        context 'from morning to afternoon' do
+          it 'takes into account the additional hour for lunch set in `holiday_hours`' do
+            time = Time.utc(2019, 12, 27, 10)
+            expect(add_seconds(time, 4.hours)).to eq(Time.utc(2019, 12, 27, 16))
+          end
+        end
+
+        context 'from afternoon to morning' do
+          it 'takes into account the additional hour for lunch set in `holiday_hours`' do
+            time = Time.utc(2019, 12, 27, 16)
+            expect(add_seconds(time, -4.hours)).to eq(Time.utc(2019, 12, 27, 10))
+          end
         end
       end
     end
