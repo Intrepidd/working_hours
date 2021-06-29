@@ -187,7 +187,7 @@ module WorkingHours
           from_was = from
           # look at working ranges
           time_in_day = from.seconds_since_midnight
-          config[:working_hours][from.wday].each do |begins, ends|
+          working_hours_for(from, config: config).each do |begins, ends|
             if time_in_day >= begins and time_in_day < ends
               if (to - from) > (ends - time_in_day)
                 # take all the range and continue

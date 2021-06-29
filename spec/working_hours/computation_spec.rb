@@ -829,7 +829,7 @@ describe WorkingHours::Computation do
     context 'with holiday hours' do
       before do
         WorkingHours::Config.working_hours = { mon: { '08:00' => '18:00' }, tue: { '08:00' => '18:00' } }
-        WorkingHours::Config.holiday_hours = { Date.new(2014, 4, 7) => { '10:00' => '12:00', '14:00' => '18:00' } }
+        WorkingHours::Config.holiday_hours = { Date.new(2014, 4, 7) => { '10:00' => '12:00', '14:00' => '17:00' } }
       end
 
       context 'time is before the start of holiday hours' do
@@ -856,6 +856,33 @@ describe WorkingHours::Computation do
             Time.utc(2014, 4, 7, 19),
             Time.utc(2014, 4, 7, 20)
           )).to eq(0)
+        end
+      end
+
+      context 'time is before the start of the holiday hours' do
+        it 'does not count holiday hours as working time' do
+          expect(working_time_between(
+            Time.utc(2014, 4, 7, 9),
+            Time.utc(2014, 4, 7, 12)
+          )).to eq(7200)
+        end
+      end
+
+      context 'time crosses overridden holiday hours at midday' do
+        it 'does not count holiday hours as working time' do
+          expect(working_time_between(
+            Time.utc(2014, 4, 7, 9),
+            Time.utc(2014, 4, 7, 14)
+          )).to eq(7200)
+        end
+      end
+
+      context 'time crosses overridden holiday hours at midday' do
+        it 'does not count holiday hours as working time' do
+          expect(working_time_between(
+            Time.utc(2014, 4, 7, 12),
+            Time.utc(2014, 4, 7, 18)
+          )).to eq(10800)
         end
       end
     end
