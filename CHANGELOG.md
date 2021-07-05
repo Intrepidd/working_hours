@@ -1,6 +1,9 @@
 # Unreleased
 
-[Compare master with v1.3.1](https://github.com/intrepidd/working_hours/compare/v1.3.1...master)
+[Compare master with v1.4.0](https://github.com/intrepidd/working_hours/compare/v1.4.0...master)
+
+# v1.4.0
+* New config option: holiday_hours - [#37](https://github.com/Intrepidd/working_hours/pull/37)
 
 # v1.3.2
 * Improve support for time shifts - [#46](https://github.com/Intrepidd/working_hours/pull/46)
