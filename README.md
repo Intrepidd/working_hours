@@ -104,6 +104,17 @@ end
 - ``holidays``
 - ``time_zone``
 
+### Holiday hours
+Sometimes you need to configure different working hours as a one-off, e.g. the working day might end earlier on Christmas Eve.
+
+You can configure this with the `holiday_hours` option, either as an override on the existing working hours, or as a set of hours that *are* being worked on a holiday day.
+
+If *any* hours are set for a calendar day in `holiday_hours`, then the `working_hours` for that day will be ignored, and only the entries in `holiday_hours` taken into consideration.
+
+```ruby
+# Configure holiday hours
+WorkingHours::Config.holiday_hours = {Date.new(2020, 12, 24) => {'09:00' => '12:00', '13:00' => '15:00'}}
+```
 
 ## No core extensions / monkey patching
 
