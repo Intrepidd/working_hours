@@ -131,11 +131,6 @@ rescue WorkingHours::InvalidConfiguration => e
 end
 ```
 
-
-
-
-
-
 ## No core extensions / monkey patching
 
 Core extensions (monkey patching to add methods on Time, Date, Numbers, etc.) are handy but not appreciated by everyone. WorkingHours can also be used **without any monkey patching**:
