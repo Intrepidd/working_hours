@@ -116,6 +116,26 @@ If *any* hours are set for a calendar day in `holiday_hours`, then the `working_
 WorkingHours::Config.holiday_hours = {Date.new(2020, 12, 24) => {'09:00' => '12:00', '13:00' => '15:00'}}
 ```
 
+### Handling errors
+
+If the configuration is erroneous, an ``WorkingHours::InvalidConfiguration`` exception will be raised containing the appropriate error message.
+
+You can also access the error code in case you want to implement custom behavior or changing one specific message, e.g:
+
+```ruby
+rescue WorkingHours::InvalidConfiguration => e
+    if e.error_code == :empty
+      raise StandardError.new "Config is required"
+    end
+    raise e
+end
+```
+
+
+
+
+
+
 ## No core extensions / monkey patching
 
 Core extensions (monkey patching to add methods on Time, Date, Numbers, etc.) are handy but not appreciated by everyone. WorkingHours can also be used **without any monkey patching**:
@@ -186,6 +206,7 @@ This gem uses a simple but efficient approach in dealing with timezones. When yo
 There is a gem called [business_time](https://github.com/bokmann/business_time) already available to do this kind of computation and it was of great help to us. But we decided to start another one because business_time is suffering from a few [bugs](https://github.com/bokmann/business_time/pull/84) and [inconsistencies](https://github.com/bokmann/business_time/issues/50). It also lacks essential features to us (like working minutes computation).
 
 Another gem called [biz](https://github.com/zendesk/biz) was released after working_hours to bring some alternative.
+
 
 ## Contributing
 

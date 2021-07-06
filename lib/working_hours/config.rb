@@ -1,7 +1,35 @@
 require 'set'
 
 module WorkingHours
-  InvalidConfiguration = Class.new StandardError
+  class InvalidConfiguration < StandardError
+    attr_reader :data, :error_code
+
+    def initialize(error_code, data: {})
+      @data = data unless data.blank?
+      @error_code = error_code
+      super compose_message(error_code)
+    end
+
+    def compose_message(error_code)
+      case error_code
+      when :empty then "No working hours given"
+      when :empty_day then "No working hours given for day `#{@data[:day]}`"
+      when :holidays_not_array then "Invalid type for holidays: #{@data[:holidays_class]} - must act like an array"
+      when :holiday_not_date then "Invalid holiday: #{@data[:day]} - must be Date"
+      when :invalid_day_keys then "Invalid day identifier(s): #{@data[:invalid_keys]} - must be 3 letter symbols"
+      when :invalid_format then "Invalid time: #{@data[:time]} - must be 'HH:MM(:SS)'"
+      when :invalid_holiday_keys then "Invalid day identifier(s): #{@data[:invalid_keys]} - must be a Date object"
+      when :invalid_timezone then "Invalid time zone: #{@data[:zone]} - must be String or ActiveSupport::TimeZone"
+      when :invalid_type then "Invalid type for `#{@data[:day]}`: #{@data[:hours_class]} - must be Hash"
+      when :outside_of_day then "Invalid time: #{@data[:time]} - outside of day"
+      when :overlap then "Invalid range: #{@data[:start]} => #{@data[:finish]} - overlaps previous range"
+      when :unknown_timezone then "Unknown time zone: #{@data[:zone]}"
+      when :wrong_order then "Invalid range: #{@data[:start]} => #{@data[:finish]} - ends before it starts"
+      else "Invalid Configuration"
+      end
+    end
+  end
+
 
   class Config
     TIME_FORMAT = /\A([0-2][0-9])\:([0-5][0-9])(?:\:([0-5][0-9]))?\z/
@@ -149,22 +177,22 @@ module WorkingHours
       def validate_hours! dates
         dates.each do |day, hours|
           if not hours.is_a? Hash
-            raise InvalidConfiguration.new "Invalid type for `#{day}`: #{hours.class} - must be Hash"
+            raise InvalidConfiguration.new :invalid_type, data: { day: day, hours_class: hours.class }
           elsif hours.empty?
-            raise InvalidConfiguration.new "No working hours given for day `#{day}`"
+            raise InvalidConfiguration.new :empty_day, data: { day: day }
           end
           last_time = nil
           hours.sort.each do |start, finish|
             if not start =~ TIME_FORMAT
-              raise InvalidConfiguration.new "Invalid time: #{start} - must be 'HH:MM(:SS)'"
+              raise InvalidConfiguration.new :invalid_format, data: { time: start }
             elsif not finish =~ TIME_FORMAT
-              raise InvalidConfiguration.new "Invalid time: #{finish} - must be 'HH:MM(:SS)'"
+              raise InvalidConfiguration.new :invalid_format, data: { time: finish }
             elsif compile_time(finish) >= 24 * 60 * 60
-              raise InvalidConfiguration.new "Invalid time: #{finish} - outside of day"
+              raise InvalidConfiguration.new :outside_of_day, data: { time: finish }
             elsif start >= finish
-              raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - ends before it starts"
+              raise InvalidConfiguration.new :wrong_order, data: { start: start, finish: finish }
             elsif last_time and start < last_time
-              raise InvalidConfiguration.new "Invalid range: #{start} => #{finish} - overlaps previous range"
+              raise InvalidConfiguration.new :overlap, data: { start: start, finish: finish }
             end
             last_time = finish
           end
@@ -173,28 +201,28 @@ module WorkingHours
 
       def validate_working_hours! week
         if week.empty?
-          raise InvalidConfiguration.new "No working hours given"
+          raise InvalidConfiguration.new :empty
         end
         if (invalid_keys = (week.keys - DAYS_OF_WEEK)).any?
-          raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be 3 letter symbols"
+          raise InvalidConfiguration.new :invalid_day_keys, data: { invalid_keys: invalid_keys.join(', ') }
         end
         validate_hours!(week)
       end
 
       def validate_holiday_hours! days
         if (invalid_keys = (days.keys.reject{ |day| day.is_a?(Date) })).any?
-          raise InvalidConfiguration.new "Invalid day identifier(s): #{invalid_keys.join(', ')} - must be a Date object"
+          raise InvalidConfiguration.new :invalid_holiday_keys, data: { invalid_keys: invalid_keys.join(', ') }
         end
         validate_hours!(days)
       end
 
       def validate_holidays! holidays
         if not holidays.respond_to?(:to_a)
-          raise InvalidConfiguration.new "Invalid type for holidays: #{holidays.class} - must act like an array"
+          raise InvalidConfiguration.new :holidays_not_array, data: { holidays_class: holidays.class }
         end
         holidays.to_a.each do |day|
           if not day.is_a? Date
-            raise InvalidConfiguration.new "Invalid holiday: #{day} - must be Date"
+            raise InvalidConfiguration.new :holiday_not_date, data: { day: day }
           end
         end
       end
@@ -203,12 +231,12 @@ module WorkingHours
         if zone.is_a? String
           res = ActiveSupport::TimeZone[zone]
           if res.nil?
-            raise InvalidConfiguration.new "Unknown time zone: #{zone}"
+            raise InvalidConfiguration.new :unknown_timezone, data: { zone: zone }
           end
         elsif zone.is_a? ActiveSupport::TimeZone
           res = zone
         else
-          raise InvalidConfiguration.new "Invalid time zone: #{zone.inspect} - must be String or ActiveSupport::TimeZone"
+          raise InvalidConfiguration.new :invalid_timezone, data: { zone: zone.inspect }
         end
         res
       end
