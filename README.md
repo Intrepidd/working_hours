@@ -202,7 +202,6 @@ There is a gem called [business_time](https://github.com/bokmann/business_time) 
 
 Another gem called [biz](https://github.com/zendesk/biz) was released after working_hours to bring some alternative.
 
-
 ## Contributing
 
 1. Fork it ( http://github.com/intrepidd/working_hours/fork )
