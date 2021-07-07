@@ -4,8 +4,8 @@ module WorkingHours
   class InvalidConfiguration < StandardError
     attr_reader :data, :error_code
 
-    def initialize(error_code, data: {})
-      @data = data unless data.blank?
+    def initialize(error_code, data: nil)
+      @data = data
       @error_code = error_code
       super compose_message(error_code)
     end
