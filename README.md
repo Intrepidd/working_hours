@@ -124,10 +124,10 @@ You can also access the error code in case you want to implement custom behavior
 
 ```ruby
 rescue WorkingHours::InvalidConfiguration => e
-    if e.error_code == :empty
-      raise StandardError.new "Config is required"
-    end
-    raise e
+  if e.error_code == :empty
+    raise StandardError.new "Config is required"
+  end
+  raise e
 end
 ```
 
