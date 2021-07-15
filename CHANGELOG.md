@@ -1,6 +1,9 @@
 # Unreleased
 
-[Compare master with v1.4.0](https://github.com/intrepidd/working_hours/compare/v1.4.0...master)
+[Compare master with v1.4.1](https://github.com/intrepidd/working_hours/compare/v1.4.1...master)
+
+# v1.4.1
+* Add InvalidConfiguration error code to allow custom message or behavior - [#47](https://github.com/Intrepidd/working_hours/pull/47)
 
 # v1.4.0
 * New config option: holiday_hours - [#37](https://github.com/Intrepidd/working_hours/pull/37)
