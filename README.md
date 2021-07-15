@@ -116,6 +116,21 @@ If *any* hours are set for a calendar day in `holiday_hours`, then the `working_
 WorkingHours::Config.holiday_hours = {Date.new(2020, 12, 24) => {'09:00' => '12:00', '13:00' => '15:00'}}
 ```
 
+### Handling errors
+
+If the configuration is erroneous, an ``WorkingHours::InvalidConfiguration`` exception will be raised containing the appropriate error message.
+
+You can also access the error code in case you want to implement custom behavior or changing one specific message, e.g:
+
+```ruby
+rescue WorkingHours::InvalidConfiguration => e
+  if e.error_code == :empty
+    raise StandardError.new "Config is required"
+  end
+  raise e
+end
+```
+
 ## No core extensions / monkey patching
 
 Core extensions (monkey patching to add methods on Time, Date, Numbers, etc.) are handy but not appreciated by everyone. WorkingHours can also be used **without any monkey patching**:
