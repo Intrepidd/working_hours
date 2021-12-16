@@ -401,12 +401,12 @@ describe WorkingHours::Computation do
 
       it 'takes into account reduced holiday closing' do
         WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 27) => { '10:00' => '17:00' } }
-        expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 27, 17))
+        expect(advance_to_closing_time(Time.utc(2019, 12, 26, 20))).to eq(Time.utc(2019, 12, 27, 17))
       end
 
       it 'takes into account extended holiday closing' do
         WorkingHours::Config.holiday_hours = { Date.new(2019, 12, 26) => { '10:00' => '21:00' } }
-        expect(advance_to_closing_time(Time.new(2019, 12, 26, 20))).to eq(Time.new(2019, 12, 26, 21))
+        expect(advance_to_closing_time(Time.utc(2019, 12, 26, 20))).to eq(Time.utc(2019, 12, 26, 21))
       end
     end
 
