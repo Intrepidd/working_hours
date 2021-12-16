@@ -2,6 +2,9 @@
 
 [Compare master with v1.4.1](https://github.com/intrepidd/working_hours/compare/v1.4.1...master)
 
+* Drop support for unsupported Ruby & ActiveSupport versions 
+* Add support to ActiveSupport 7.0
+
 # v1.4.1
 * Add InvalidConfiguration error code to allow custom message or behavior - [#47](https://github.com/Intrepidd/working_hours/pull/47)
 
