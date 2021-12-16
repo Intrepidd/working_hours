@@ -5,8 +5,8 @@
 A modern ruby gem allowing to do time calculation with working hours.
 
 Compatible and tested with:
-- Ruby `2.4`, `2.5`, `2.6`, `2.7`, `3.0`, JRuby `9.2`
-- ActiveSupport `4.x`, `5.x`, `6.x`
+- Ruby `2.6`, `2.7`, `3.0`, JRuby `9.2`
+- ActiveSupport `5.x`, `6.x`, `7.x`
 
 ## Installation
 
