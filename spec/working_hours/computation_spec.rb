@@ -757,6 +757,7 @@ describe WorkingHours::Computation do
     it 'uses precise computation to avoid useless loops' do
       # +200 usec on each time, using floating point would cause
       # precision issues and require several iterations
+      expect(self).to receive(:advance_to_working_time).twice.and_call_original
       expect(working_time_between(
         Time.utc(2014, 4, 7, 5, 0, 0, 200),
         Time.utc(2014, 4, 7, 15, 0, 0, 200),
