@@ -1,11 +1,11 @@
 # WorkingHours
 
-[![Build Status](https://travis-ci.com/Intrepidd/working_hours.svg?branch=master)](https://travis-ci.com/Intrepidd/working_hours)
+[![build](https://github.com/Intrepidd/working_hours/actions/workflows/build.yml/badge.svg)](https://github.com/Intrepidd/working_hours/actions/workflows/build.yml)
 
 A modern ruby gem allowing to do time calculation with working hours.
 
 Compatible and tested with:
-- Ruby `2.6`, `2.7`, `3.0`, JRuby `9.2`
+- Ruby `2.6`, `2.7`, `3.0`, `3.1`, `3.2`, JRuby `9.2`
 - ActiveSupport `5.x`, `6.x`, `7.x`
 
 ## Installation
