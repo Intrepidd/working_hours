@@ -1,0 +1,25 @@
+name: build
+on: push
+
+jobs:
+  specs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: "! contains(github.event.head_commit.message, '[ci-skip]')"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      -  run: git fetch --no-tags --prune origin
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+            ruby-version: 3.0.3
+            bundler-cache: true
+
+      - name: Run rspec
+        run: RAILS_ENV=test bundle exec rspec
