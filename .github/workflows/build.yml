@@ -1,10 +1,5 @@
 name: build
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
+on: push
 jobs:
   specs:
     runs-on: ubuntu-latest
