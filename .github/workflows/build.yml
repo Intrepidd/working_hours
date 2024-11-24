@@ -8,16 +8,21 @@ jobs:
       matrix:
         ruby_version:
           - 2.7.8
-          - 3.0.6
-          - 3.1.4
-          - 3.2.2
-          - 3.3.0
-          - jruby-9.4.5.0
+          - 3.0.7
+          - 3.1.6
+          - 3.2.6
+          - 3.3.6
+          - jruby-9.4.9.0
         gemfile:
           - gemfiles/Gemfile.activesupport-5.x
           - gemfiles/Gemfile.activesupport-6.x
-          - gemfiles/Gemfile.activesupport-7.x
-
+          - gemfiles/Gemfile.activesupport-7.1.x
+          - gemfiles/Gemfile.activesupport-7.2.x
+        exclude:
+            - gemfile: gemfiles/Gemfile.activesupport-7.2.x
+              ruby_version: 2.7.8
+            - gemfile: gemfiles/Gemfile.activesupport-7.2.x
+              ruby_version: 3.0.7
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
     steps:
