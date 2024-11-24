@@ -1,9 +1,13 @@
 # Unreleased
 
-[Compare master with v1.4.1](https://github.com/intrepidd/working_hours/compare/v1.4.1...master)
+[Compare master with v1.5.0](https://github.com/intrepidd/working_hours/compare/v1.5.0...master)
 
-* Drop support for unsupported Ruby & ActiveSupport versions 
-* Add support to ActiveSupport 7.0
+# v1.5.0
+This release does not include any code change, there is only a dependency bump to ActiveSupport >= 7.0 to reflect the actual versions the gem supports.
+
+* Drop support for unsupported Ruby & ActiveSupport versions
+* Add support to ActiveSupport 7 and 8
+* Changes gemspec dependency to ActiveSupport >= 7.0
 
 # v1.4.1
 * Add InvalidConfiguration error code to allow custom message or behavior - [#47](https://github.com/Intrepidd/working_hours/pull/47)
